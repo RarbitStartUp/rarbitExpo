@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View } from "react-native";
-import UploadVideo from "./uploadVideo";
 
 export default function Page() {
   return (

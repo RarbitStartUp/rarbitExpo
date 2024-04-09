@@ -60,6 +60,12 @@ target 'rarbitExpo' do
       :mac_catalyst_enabled => false
     )
 
+    # Add EXCLUDED_ARCHS setting for iOS simulator builds
+    # installer.pods_project.targets.each do |target|
+    #   target.build_configurations.each do |config|
+    #     config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'i386 arm64'
+    #   end
+    # end
     # This is necessary for Xcode 14, because it signs resource bundles by default
     # when building for devices.
     installer.target_installation_results.pod_target_installation_results

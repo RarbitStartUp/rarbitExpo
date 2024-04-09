@@ -30,6 +30,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="rarbit"/>
         <data android:scheme="com.rarbitstartup.rarbit"/>
+        <data android:scheme="exp+rarbit"/>
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>

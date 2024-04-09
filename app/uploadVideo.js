@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
 // import {useNavigation} from '@react-navigation/native';
 import { useNavigation, useRouter } from "expo-router";
 import axios from 'axios';
+import { useWebSocket } from '../util/useWebSocket';
 
 export default function UploadVideo() {
     //   const [progress, setProgress] = useState(0);
@@ -19,6 +20,7 @@ export default function UploadVideo() {
         if (process.env.NODE_ENV === 'development') {
             // Running in development mode
             apiUrl = 'http://192.168.0.188:3001/api/uploadVideo'; // Emulator to localhost:3001
+            // apiUrl = 'http://localhost:3001/api/uploadVideo'; // Emulator to localhost:3001
         } else {
             // Running in production mode
             apiUrl = 'https://rarbit.tech/api/uploadVideo'; // Expo app to rarbit.tech
