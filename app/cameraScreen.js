@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Toast from 'react-native-toast-message';
-import { View, Text, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, Pressable } from 'react-native';
 // import { useRoute } from '@react-navigation/native';
 import { useNavigation, useRouter, useLocalSearchParams } from 'expo-router';
 import {
@@ -29,6 +29,12 @@ export default function CameraScreen() {
     const { jsonData } = useLocalSearchParams();
     //   const route = useRoute();
     console.log('jsonData in cameraScreen.js:', jsonData);
+    const camera =useRef(null);
+    const onTakePicture = async() =>{
+        const photo = await camera.current?.takePhoto();
+        console.log("photo:",photo);
+        return photo
+    }
     // console.log('responseData in Checkbox.jsx:', JSON.stringify(responseData, null, 2));
     // Object.entries(responseData).forEach(([key, value]) => {
     //     console.log(`${key}:`, value);
@@ -318,10 +324,12 @@ export default function CameraScreen() {
                 // <View className="flex-4/5">
                 <View style={{ flex: 1 }}>
                     <Camera
+                        ref={camera}
                         style={{ flex: 1 }}
                         device={device}
                         isActive={true}
                         video={true}
+                        photo={true}
                         // audio={true}
                         frameProcessorFps={5}
                         frameProcessor={frameProcessor}
@@ -329,6 +337,17 @@ export default function CameraScreen() {
                     <View className="absolute top-0 left-0 right-0 p-4">
                         <Text className="text-white">Camera Screen</Text>
                         {/* Button to toggle sending frames */}
+                        <Pressable 
+                            onPress={onTakePicture}
+                            style={{
+                                position:"absolute",
+                                alignSelf:"center",
+                                bottom:50,
+                                width:75,
+                                height:75,
+                                backgroundColor:"white",
+                                borderRadius:75,
+                        }}/>
                         <TouchableOpacity
                             onPress={toggleSendingFrames}
                             className="bg-blue-500 rounded-md p-4 mt-4">

@@ -5,6 +5,9 @@ import { useNavigation, useRouter } from "expo-router";
 import axios from 'axios';
 import { useWebSocket } from '../util/useWebSocket';
 
+// Add axios debug mode here
+axios.defaults.debug = true;
+
 export default function UploadVideo() {
     //   const [progress, setProgress] = useState(0);
     const [message, setMessage] = useState('');
@@ -16,10 +19,10 @@ export default function UploadVideo() {
     async function upload(inputLink, navigation) {
 
         let apiUrl;
-
+        
         if (process.env.NODE_ENV === 'development') {
             // Running in development mode
-            apiUrl = 'http://192.168.0.188:3001/api/uploadVideo'; // Emulator to localhost:3001
+            apiUrl = 'http://192.168.0.168:3001/api/uploadVideo'; // Emulator to localhost:3001
             // apiUrl = 'http://localhost:3001/api/uploadVideo'; // Emulator to localhost:3001
         } else {
             // Running in production mode
