@@ -1,16 +1,17 @@
 {
   "expo": {
-    "name": "rarbitExpo",
+    "name": "Rarbit",
     "slug": "rarbit",
     "scheme": "rarbit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/colourLogo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "./assets/splashRarbit.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff",
+      "hideExponentText": "true"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -46,6 +47,19 @@
           "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
           "enableMicrophonePermission": true,
           "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos."
+        }
+      ],
+      [
+        "react-native-fast-tflite",
+        {
+          "enableCoreMLDelegate": true
         }
       ]
     ],

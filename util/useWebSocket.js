@@ -6,7 +6,8 @@ const WebSocketContext = createContext();
 const getWebSocketURL = () => {
     // Define WebSocket URLs for different environments or platforms
     // For example, you might have different URLs for development, staging, and production environments
-    const developmentUrl = 'http://192.168.0.168:3001'; // Change to your server URL
+    const developmentUrl = 'http://localhost:3001'; // Change to your server URL
+    // const developmentUrl = 'http://192.168.0.168:3001'; // Change to your server URL
     const productionUrl = 'https://rarbit.tech';
 
     // Determine the environment or platform where the app is running

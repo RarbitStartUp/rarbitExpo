@@ -14,7 +14,7 @@ import {
 import { button } from '../style/NativeWind.js';
 import Toast from 'react-native-toast-message';
 // import { useNavigation } from '@react-navigation/native';
-import { useNavigation, useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 
 export default function Checkbox() {
@@ -43,7 +43,6 @@ export default function Checkbox() {
     const [objectItems, setObjectItems] = useState([]);
     const [actionItems, setActionItems] = useState([]);
 
-    const navigation = useNavigation();
     const router = useRouter();
     // const socket = useWebSocket();
     // console.log('socket:', socket);

@@ -21,34 +21,20 @@ import { useWebSocket } from '../util/useWebSocket';
 // import { useTensorflowModel } from "react-native-fast-tflite";
 import { DisplayCheckedList } from '../components/DisplayCheckedList';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
-// import { Worklets as TWorklets, useRunInJS } from 'react-native-worklets-core';
-// import { runOnJS } from 'react-native-reanimated';
+import { Worklets as TWorklets } from 'react-native-worklets-core';
 // import { CameraRoll } from "@react-native-camera-roll/camera-roll";
 
 export default function CameraScreen() {
     const [isWebSocketOpen, setIsWebSocketOpen] = useState(false);
     const socket = useWebSocket();
     // Access the route object to get the passed data
-    // const { jsonData } = useLocalSearchParams();
-    const jsonData = [{"timestamp":"00:00:02","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut":true}},{"timestamp":"00:00:10","objects":{"leek":true,"water":true,"bowl":true},"actions":{"wash":true}},{"timestamp":"00:00:38","objects":{"leek":true,"paper towel":true},"actions":{"dry":true}},{"timestamp":"00:00:43","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut":true}},{"timestamp":"00:01:03","objects":{"leek":true,"bowl":true},"actions":{"store":true}}]
+    const { jsonData } = useLocalSearchParams();
     //   const route = useRoute();
     console.log('jsonData in cameraScreen.js:', jsonData);
 
 // Check if Worklets are enabled
-// const workletsEnabled = typeof TWorklets;
-// const workletsEnabled = typeof TWorklets !== 'undefined';
-// console.log("workletsEnabled:", workletsEnabled); 
-
-// Extract createRunOnJS from TWorklets
-// const { useRunInJS } = TWorklets;
-// const { createRunOnJS } = TWorklets;
-// Convert the function to a string using toString() and log it
-// console.log("useRunInJS:", useRunInJS);
-// console.log("useRunInJS:", useRunInJS.toString());
-// console.log("runOnJS:", runOnJS);
-// console.log("runOnJS:", runOnJS.toString());
-// console.log("createRunOnJS:", createRunOnJS);
-// console.log("createRunOnJS:", createRunOnJS.toString());
+const workletsEnabled = typeof TWorklets !== 'undefined';
+console.log("workletsEnabled:", workletsEnabled);
 
 // Now you can use workletsEnabled to track if Worklets are enabled and show it on the UI
 
@@ -195,51 +181,116 @@ export default function CameraScreen() {
         };
     }, [socket]);
 
-    // Function to handle WebSocket operations
-// const handleWebSocket = useRunInJS((frameData, jsonData) =>{
-// // const handleWebSocket = Worklets.createRunOnJS((frameData, jsonData) =>{
-//     // Perform WebSocket operations here, such as establishing a connection and sending data
-//     // Replace the following lines with your WebSocket code
-//     // Send frames to WebSocket
-//                         // if (socket) {
-//                         //     // Send frameMessage to Socket.IO server
-//                         //     socket.emit('frame', frame);
-//                         //     // Send jsonData to Socket.IO server
-//                         //     socket.emit('jsonData', jsonData);
-//                         // }
-//     console.log("Start sending frames via WebSocket");
-//     console.log("Frame data:", frameData);
-//     console.log("JSON data:", jsonData);
-//   },);
-  
-// const handleWS = (frameData, jsonData) =>{
-//     console.log("Start sending frames via WebSocket");
-//     console.log("Frame data:", frameData);
-//     console.log("JSON data:", jsonData);
-// };
-
     // Define frame processing function using useFrameProcessor hook
-    const frameProcessor = useFrameProcessor((frame) => {
-        'worklet'
-        if (isSendingFrames) {
+    const frameProcessor = useFrameProcessor(
+        frame => {
+            'worklet'// Indicates that the function should run on the UI thread
             console.log(`Frame: ${frame.width}x${frame.height} (${frame.pixelFormat})`)
-            console.log("isSendingFrames turns true now, the toggle button is clicked.")
-            if (jsonData && jsonData.length > 0) {
-                console.log("jsonData is present.")
-                try {
-                    console.log("start sending frames via websocket.")
-                    // Call the handleWebSocket function from the main thread using runOnJS
-                    // handleWebSocket(frame, jsonData);
-                    // runOnJS(handleWS)(frame, jsonData);
-                }catch (error) {
-                    console.error(
-                        'Error while processing frame or sending data to WebSocket:',
-                        error,
-                    );
+            // Check if frames should be sent
+            if (isSendingFrames) {
+                console.log("isSendingFrames turns true now, the toggle button is clicked.")
+                // Check if jsonData is available and it has at least one item
+                if (jsonData && jsonData.length > 0) {
+                    console.log("jsonData is present.")
+                    // Get the objects from the first item in the jsonData array
+                    // const firstObjects = jsonData[0].objects;
+
+                    // // Check if the first item's objects contain the target object
+                    // if (firstObjects && Object.keys(firstObjects).length > 0) {
+                    //     // Log a message indicating that at least one item is detected
+                    //     console.log(
+                    //         'At least one item detected in the first timestamp objects.',
+                    //     );
+
+                    //     // Your frame processing logic goes here
+                    //     // const objects = detectObjects(frame, frameProcessorConfig);
+                    //     if (model == null) return;
+
+                    //     // 1. Resize 4k Frame to 192x192x3 using vision-camera-resize-plugin
+                    //     const resized = resize(frame, {
+                    //         scale: {
+                    //             width: 192,
+                    //             height: 192,
+                    //         },
+                    //         pixelFormat: 'rgb',
+                    //         dataType: 'uint8',
+                    //     });
+
+                    //     // 2. Run model with given input buffer synchronously
+                    //     const outputs = model.runSync([resized]);
+
+                    //     // 3. Interpret outputs accordingly
+                    //     const detection_boxes = outputs[0];
+                    //     const detection_classes = outputs[1];
+                    //     const detection_scores = outputs[2];
+                    //     const num_detections = outputs[3];
+                    //     console.log(`Detected ${num_detections[0]} objects!`);
+
+                    //     // for (let i = 0; i < detection_boxes.length; i += 4) {
+                    //     //   const confidence = detection_scores[i / 4];
+                    //     //   if (confidence > 0.7) {
+                    //     //     // 4. Draw a red box around the detected object!
+                    //     //     const left = detection_boxes[i];
+                    //     //     const top = detection_boxes[i + 1];
+                    //     //     const right = detection_boxes[i + 2];
+                    //     //     const bottom = detection_boxes[i + 3];
+                    //     //     const rect = SkRect.Make(left, top, right, bottom);
+                    //     //     canvas.drawRect(rect, SkColors.Red);
+                    //     //   }
+                    //     // }
+                    //     const detectedObjects = outputs[1];
+                    //     console.log('objects detected:', detectedObjects);
+                    //     // Filter the objects to detect the target objects from the first item's objects
+                    //     const targetObjects = detectedObjects.filter(o =>
+                    //         Object.keys(firstObjects).includes(o.type),
+                    //     );
+
+                    //     // Check if targetObjects is not empty
+                    //     if (targetObjects.length > 0) {
+                    try {
+                        //             // Log the detected target objects
+                        //             console.log(
+                        //                 `Detected ${targetObjects.length} target objects:`,
+                        //                 targetObjects,
+                        //             );
+                        console.log("start sending frames via websocket.")
+                        // Send frames to WebSocket
+                        if (socket) {
+                            // Send frameMessage to Socket.IO server
+                            socket.emit('frame', frame);
+
+                            // Send jsonData to Socket.IO server
+                            socket.emit('jsonData', jsonData);
+                        }
+                        // const frameMessage = JSON.stringify({
+                        //     type: 'frames',
+                        //     frames: frame.data,
+                        // });
+                        // if (websocket && websocket.readyState === WebSocket.OPEN) {
+                        //     websocket.send(frameMessage);
+                        // }
+
+                        // // Send jsonData to WebSocket
+                        // const jsonMessage = JSON.stringify({
+                        //     type: 'jsonData',
+                        //     jsonData: jsonData,
+                        // });
+                        // if (websocket && websocket.readyState === WebSocket.OPEN) {
+                        //     websocket.send(jsonMessage);
+                        // }
+                    } catch (error) {
+                        console.error(
+                            'Error while processing frame or sending data to WebSocket:',
+                            error,
+                        );
+                    }
+                    // }
+                    // }
                 }
             }
-        }
-      }, [isSendingFrames])
+        },
+        [jsonData, isSendingFrames],
+    );
 
     // useEffect(() => {
     //     return () => {
@@ -296,7 +347,7 @@ export default function CameraScreen() {
                         photo={true}
                         // audio={true}
                         // frameProcessorFps={5}
-                        frameProcessor={frameProcessor}
+                        // frameProcessor={frameProcessor}
                     />
                     <View className="absolute top-0 left-0 right-0 p-4">
                         <Text className="text-white">Camera Screen</Text>
