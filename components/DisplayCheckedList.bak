@@ -1,0 +1,105 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView } from 'react-native';
+// import {Text} from '../style/NativeWind';
+
+export function DisplayCheckedList({ fullChecklistString, jsonData }) {
+    console.log("jsonData in DisplayCheckedList :", jsonData);
+    console.log("fullChecklistString in DisplayCheckedList :", fullChecklistString);
+    const [fullChecklistString, setFullChecklistString] = useState(fullChecklistString);
+
+    useEffect(() => {
+        try {
+            setFullChecklistString(prevData => {
+                const newState = { ...prevData, ...fullChecklistString };
+                console.log('newState:', newState);
+                return newState;
+            });
+        } catch (error) {
+            console.error('Error updating AI results:', error);
+        }
+    }, [fullChecklistString]);
+
+    const renderChecklistItems = (checklistItems, checkboxStates) => {
+        return Object.keys(checklistItems).map((item, index) => (
+            <Text color="options" size="medium" key={index + 1}>
+                {/* {index + 1}. {item} - {checkboxStates[item] ? '✔' : null} */}
+                {checkboxStates[item] ? '✔' : null}
+            </Text>
+        ));
+    };
+
+    return (
+            <View>
+                <Text className="text-xl font-bold text-purple-300">Current Step - Step {jsonData?.stepIndex + 1}</Text>
+                <Text>Timestamp : {jsonData?.timestamp}</Text>
+                <View>
+                    <Text>Objects</Text>
+                    {renderChecklistItems(
+                        fullChecklistString?.objects,
+                        fullChecklistString?.objects,
+                    )}
+                </View>
+                <View>
+                    <Text>Actions</Text>
+                    {renderChecklistItems(
+                        fullChecklistString?.actions,
+                        fullChecklistString?.actions,
+                    )}
+                </View>
+                {Object.keys(fullChecklistString?.objects).every(
+                    key => fullChecklistString.objects[key],
+                ) &&
+                    Object.keys(fullChecklistString?.actions).every(
+                        key => fullChecklistString.actions[key],
+                    ) &&
+                    Object.keys(fullChecklistString?.objects).length === 0 &&
+                    Object.keys(fullChecklistString?.actions).length === 0 && (
+                        <Text>You have finished all steps!</Text>
+                    )}
+                {Object.keys(fullChecklistString?.objects).length === 0 &&
+                    Object.keys(fullChecklistString?.actions).length === 0 && (
+                        <Text>No more steps ahead</Text>
+                    )}
+                {/* <Text>
+                    Next Step - Step
+                    {Object.keys(jsonData?.objects).length === 0 &&
+                        Object.keys(jsonData?.actions).length === 0
+                        ? ' --'
+                        : jsonData?.stepIndex + 2}
+                </Text>
+                <Text>Waiting to be detected next...</Text>
+                <Text>
+                    Timestamp :{' '}
+                    {Object.keys(jsonData?.timestamp).length > 0
+                        ? jsonData?.timestamp
+                        : '--'}
+                </Text>
+                <View>
+                    <Text>Objects</Text>
+                    {Object.keys(jsonData?.objects).length > 0 ? (
+                        Object.keys(jsonData?.objects).map(
+                            (object, index) => (
+                                <Text key={index + 1}>
+                                    {index + 1}. {object}
+                                </Text>
+                            ),
+                        )
+                    ) : (
+                        <Text>--</Text>
+                    )}
+                    <Text>Actions</Text>
+                    {Object.keys(jsonData?.actions).length > 0 ? (
+                        Object.keys(jsonData?.actions).map(
+                            (action, index) => (
+                                <Text key={index + 1}>
+                                    {index + 1}. {action}
+                                </Text>
+                            ),
+                        )
+                    ) : (
+                        <Text>--</Text>
+                    )}
+                </View> */}
+            </View>
+    );
+}

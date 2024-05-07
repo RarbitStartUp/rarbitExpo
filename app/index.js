@@ -1,107 +1,152 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button } from 'react-native';
-// import {useNavigation} from '@react-navigation/native';
-import { useNavigation, useRouter } from "expo-router";
-import axios from 'axios';
-import { useWebSocket } from '../util/useWebSocket';
+import React, { useState,useRef,useMemo,useCallback } from 'react';
+import { Animated,Button,Easing, View, Text,TextInput, TouchableOpacity,StyleSheet } from 'react-native';
+// import Toast from 'react-native-root-toast';
+import Toast from 'react-native-toast-message';
+import { useRouter } from "expo-router";
+import { UploadVideo } from "../components/UploadVideo"
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GradientText } from '../components/GradientText';
+import { NeuButton } from '../components/neumorphsimButton';
+import { Entypo,AntDesign,FontAwesome5,FontAwesome6} from '@expo/vector-icons';
+import { MusicButton } from "../components/MusicButton"
+import { SoundButton } from '../components/SoundButton';
+import { useSound } from '../util/SoundProvider';
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { YouTubePlayer } from '../components/YouTubePlayer';
 
-// Add axios debug mode here
-axios.defaults.debug = true;
+import * as Haptics from 'expo-haptics';
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
 
-export default function UploadVideo() {
-    //   const [progress, setProgress] = useState(0);
-    const [message, setMessage] = useState('');
-    const [inputLink, setInputLink] = useState('');
-    const [pending, setPending] = useState(false);
-    const navigation = useNavigation();
+export default function Index(){
+
     const router = useRouter();
+    const insets = useSafeAreaInsets();
 
-    async function upload(inputLink, navigation) {
-
-        let apiUrl;
-        
-        if (process.env.NODE_ENV === 'development') {
-            // Running in development mode
-            // apiUrl = 'http://192.168.0.168:3001/api/uploadVideo'; // Emulator to localhost:3001
-            apiUrl = 'http://localhost:3001/api/uploadVideo'; // Emulator to localhost:3001
-        } else {
-            // Running in production mode
-            apiUrl = 'https://rarbit.tech/api/uploadVideo'; // Expo app to rarbit.tech
-        }
-        try {
-            console.log('inputLink :', inputLink);
-            console.log("apiUrl:", apiUrl);
-            // Make an HTTP POST request to your server to upload the video
-            const response = await axios.post(
-                apiUrl,
-                {
-                    inputLink,
-                },
-            );
-            console.log('response in UploadVideo Component :', response);
-            // Before navigating to the Checkbox screen,
-            // Keep only the necessary data, solved the Error : "Non-serializable values were found in the navigation state"
-            const responseDataOnly = response.data;
-            console.log("responseDataOnly :", responseDataOnly);
-            // Navigate to the CheckboxScreen and pass the data as a parameter
-            // navigation.navigate('Checkbox', {
-            //     responseData: responseDataOnly,
-            // });
-            router.push({ pathname: "/checkbox", params: { responseData: JSON.stringify(responseDataOnly) } });
-        } catch (error) {
-            console.error('Error uploading video:', error);
-            setMessage('Upload failed'); // Move this line here
-            throw new Error('Upload failed');
-        }
+    function haptics(type) {
+        Haptics.impactAsync(type);
     }
+    
+    // Usage
+    const light = Haptics.ImpactFeedbackStyle.Light; // Change this to the desired type
+    const medium = Haptics.ImpactFeedbackStyle.Medium; // Change this to the desired type
+    const heavy = Haptics.ImpactFeedbackStyle.Heavy; // Change this to the desired type
 
-    const handleUpload = async () => {
-        if (!inputLink.trim()) {
-            // If inputLink is empty or contains only whitespace
-            setMessage('Please paste your link');
-            return;
-        }
-
-        setPending(true);
-        try {
-            // Call your upload action with inputLink
-            await upload(inputLink, navigation);
-            setMessage('Upload successful');
-        } catch (error) {
-            setMessage('Upload failed');
-        } finally {
-            setPending(false);
-        }
-    };
-
-     // Function to navigate to CameraScreen with jsonData
+    const { playSound, soundEnabled } = useSound();
+    const buttonClickSound = require('../assets/shooting-sound-fx-159024.mp3');
+    
+     // Function to navigate to CameraScreen
      const navigateToCameraScreen = () => {
+    //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics(heavy);
+      if(soundEnabled){
+          playSound(buttonClickSound);
+      }
       console.log('Open Camera button pressed');
-      // navigation.navigate('CameraScreen', { jsonData });
       router.push({ pathname: "/cameraScreen"});
+  };
+     // Function to navigate to CheckboxScreen
+     const navigateToCheckboxScreen = () => {
+    //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics(heavy);
+      playSound(buttonClickSound);
+      console.log('Open Camera button pressed');
+      router.push({ pathname: "/checkboxDev"});
+  };
+
+     const navigateToBSUserList = () => {
+    //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics(heavy);
+      playSound(buttonClickSound);
+      console.log('Open BottomSheet button pressed');
+      router.push({ pathname: "/bsUserList"});
   };
 
     return (
-        <View className="flex flex-col justify-center items-center h-full">
-            <Text>{message}</Text>
-            {/* <ProgressBar progress={progress} color={'blue'} /> */}
-            <TextInput
-                placeholder="Paste Your Youtube Link"
-                value={inputLink}
-                onChangeText={setInputLink}
-                className="my-2 py-2 px-4 border border-black w-4/5"
+        <>
+        <View
+            style={{
+            paddingTop: insets.top,
+            // paddingLeft: insets.left,
+            // paddingBottom: insets.bottom,
+            // paddingRight: insets.right,
+            }}
             />
-            <Button
-                title={pending ? 'Uploading...' : 'Upload'}
-                onPress={handleUpload}
-                disabled={pending}
-            />
-            <Button
-                title="Open Camera"
-                onPress={navigateToCameraScreen}
-                disabled={pending}
-            />
-            
+        <View className="flex flex-1 flex-col justify-between items-center h-full relative ">
+        <View className="flex flex-row justify-end items-center px-5 w-full">
+        <MusicButton color="#d2d2d2"/>
+        <SoundButton color="#d2d2d2"/>
+        <FontAwesome6 name="circle-user" size={35} color="#d2d2d2"/>
         </View>
+            <View className="flex justify-center mx-5">
+                <GradientText fontSize={100} colour1={'#fabada'} colour2={'#8A2BE2'}>
+                    Hello
+                </GradientText>
+                <Text className="text-3xl font-bold text-gray-400">
+                    Take your First Step to try Action Recognition
+                </Text>
+            </View>
+            <UploadVideo/>
+            <View className="flex flex-row mt-20 justify-center items-center w-full justify-evenly">
+                <NeuButton 
+                onPress={navigateToCameraScreen}
+                backgroundColor="#ededed"
+                height={55}
+                width={55}
+                maxWidth={55}
+                borderRadius={75}
+                >
+                <FontAwesome5 name="pencil-alt" size={30} color="#cacaca" />
+                </NeuButton>
+                <NeuButton 
+                onPress={navigateToCameraScreen}
+                backgroundColor="#ededed"
+                height={55}
+                width={55}
+                maxWidth={55}
+                borderRadius={75}
+                >
+                <FontAwesome5 name="image" size={30} color="#cacaca" />
+                </NeuButton>
+                <NeuButton 
+                onPress={navigateToCameraScreen}
+                backgroundColor="#ededed"
+                height={55}
+                width={55}
+                maxWidth={55}
+                borderRadius={75}
+                >
+                <AntDesign name="copy1" size={30} color="#cacaca" />
+                </NeuButton>
+                <NeuButton 
+                    onPress={navigateToCameraScreen}
+                    backgroundColor="#ededed"
+                    height={55}
+                    width={55}
+                    maxWidth={55}
+                    borderRadius={75}
+                >
+                <Entypo name="camera" size={30} color="#cacaca" />
+                </NeuButton>
+            </View>
+            <View className="h-10"/>
+            <TouchableOpacity
+                onPress={navigateToCheckboxScreen}
+                style={{
+                    position:"absolute",
+                    bottom:50,
+                }}
+                >
+                <Text className="text-gray-400 text-lg font-semi-bold">Checkbox Dev mode</Text>
+            </TouchableOpacity>
+            </View>
+        </>
     );
 }
+

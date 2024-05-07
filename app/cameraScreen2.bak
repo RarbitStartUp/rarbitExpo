@@ -1,0 +1,26 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Camera,
+    useCameraDevice,
+    useFrameProcessor,
+} from 'react-native-vision-camera';
+
+export default function CameraScreen() {
+  const device = useCameraDevice('back');
+    const frameProcessor = useFrameProcessor((frame) => {
+      'worklet'
+      // const objects = detectObjects(frame)
+      // console.log(`Detected ${objects.length} objects.`)
+      console.log("FrameProcessor Logged.")
+    }, [])
+  
+    return (
+      <Camera
+        device={device}
+        style={{ flex: 1 }}
+        isActive={true}
+        // frameProcessorFps={5}
+        frameProcessor={frameProcessor}
+      />
+    )
+  }

@@ -10,83 +10,65 @@ import {
     ScrollView,
     TouchableOpacity,
 } from 'react-native';
-// import { useRoute } from '@react-navigation/native';
 import { button } from '../style/NativeWind.js';
 import Toast from 'react-native-toast-message';
-// import { useNavigation } from '@react-navigation/native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 
 export default function Checkbox() {
     // Access the route object to get the passed data
+    
+    // ***For Production ( comment out for development - 5 lines ):
     const { responseData } = useLocalSearchParams();
-    //   const route = useRoute();
     console.log('responseData in Checkbox.jsx:', responseData);
-    // console.log('responseData in Checkbox.jsx:', JSON.stringify(responseData, null, 2));
-    console.log('responseData in Checkbox.jsx:');
-    // Object.entries(responseData).forEach(([key, value]) => {
-    //     console.log(`${key}:`, value);
-    // });
-
-    //   const checklist = route.params.responseData.checklist;
+        
     const parsedResponseData = JSON.parse(responseData);
     console.log('parsedResponseData in Checkbox.jsx :', parsedResponseData);
     const checklist = parsedResponseData.checklist;
+
+    // ***For Development ( comment out for production - 1 line ):
+    // const checklist = [{"timestamp":"00:00:02","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut":true}},{"timestamp":"00:00:10","objects":{"leek":true,"water":true,"bowl":true},"actions":{"wash":true}},{"timestamp":"00:00:38","objects":{"leek":true,"paper towel":true},"actions":{"dry":true}},{"timestamp":"00:00:43","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut":true}},{"timestamp":"00:01:03","objects":{"leek":true,"bowl":true},"actions":{"store":true}}]
+    
+    // log the checklist :
     console.log('checklist in Checkbox.jsx :', checklist);
 
-    // const deepCopiedChecklist = JSON.parse(JSON.stringify(checklist))
-
     const [jsonData, setJsonData] = useState(checklist); // Added state for jsonData
-    // const [isWebSocketOpen, setIsWebSocketOpen] = useState(null);
     const [objectInputValues, setObjectInputValues] = useState(['']);
     const [actionInputValues, setActionInputValues] = useState(['']);
     const [objectItems, setObjectItems] = useState([]);
     const [actionItems, setActionItems] = useState([]);
 
     const router = useRouter();
-    // const socket = useWebSocket();
-    // console.log('socket:', socket);
-    // console.log('isWebSocketOpen:', isWebSocketOpen);
-    // console.log('WebSocket readyState:', socket.readyState);
+    const { socket, isWebSocketOpen } = useWebSocket();
+    console.log('socket:', socket);
+    console.log('isWebSocketOpen:', isWebSocketOpen);
+    console.log('WebSocket readyState:', socket.readyState);
 
-    // useEffect(() => {
-    //   if (socket && socket instanceof WebSocket) {
-    //     socket.addEventListener('error', error => {
-    //       console.error('WebSocket error in displayCheckbox :', error);
-    //     });
+    useEffect(() => {
+        if (isWebSocketOpen) {
+            console.log('WebSocket connection opened successfully in checkbox screen');
+        }
+    }, [isWebSocketOpen]);
 
-    //     socket.addEventListener('open', () => {
-    //       setIsWebSocketOpen(true);
-    //       console.log(
-    //         'WebSocket connection opened successfully in displayCheckbox',
-    //       );
-    //     });
+    useEffect(() => {
+        if (!socket) return;
 
-    //     socket.addEventListener('close', () => {
-    //       setIsWebSocketOpen(false);
-    //       console.log('WebSocket connection closed in displayCheckbox');
-    //     });
-    //   } else {
-    //     console.error('Invalid WebSocket instance');
-    //   }
-    // }, [socket]);
+        // socket.on('connecst', () => {
+        //     console.log('WebSocket connection opened successfully in cameraScreen');
+        // });
 
-    // useEffect(() => {
-    //     // Parse and set jsonData when checklist changes
-    //     try {
-    //         if (initialJsonData === null) {
-    //             setInitialJsonData(deepCopiedChecklist);
-    //         }
+        socket.on('error', error => {
+            console.error('WebSocket error in checkbox screen:', error);
+        });
 
-    //         // Set jsonData to deepCopiedChecklist if deepCopiedChecklist is defined and jsonData is null
-    //         if (deepCopiedChecklist && jsonData === null) {
-    //             setJsonData(deepCopiedChecklist);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error setting jsonData :', error);
-    //         // Handle parsing error
-    //     }
-    // }, [deepCopiedChecklist]);
+        socket.on('disconnect', () => {
+            console.log('WebSocket connection closed in checkbox screen');
+        });
+
+        return () => {
+            socket.close();
+        };
+    }, [socket]);
 
     useEffect(() => {
         if (jsonData) {
@@ -189,8 +171,13 @@ export default function Checkbox() {
     // Function to navigate to CameraScreen with jsonData
     const navigateToCameraScreen = () => {
         console.log('Submit button pressed');
-        // navigation.navigate('CameraScreen', { jsonData });
-        router.push({ pathname: "/cameraScreen", params: { jsonData: JSON.stringify(jsonData) } });
+        if (socket) {
+            // Send jsonData to Socket.IO server
+            socket.emit('jsonData', jsonData);
+            console.log("JSON data on submit button:", jsonData);
+        }
+        router.push({ pathname: "/cameraScreen"});
+        // router.push({ pathname: "/cameraScreen", params: { jsonData: JSON.stringify(jsonData) } });
     };
 
     // Function to add an item to a specific step
