@@ -58,24 +58,31 @@ export function UploadVideo() {
     const medium = Haptics.ImpactFeedbackStyle.Medium; // Change this to the desired type
     const heavy = Haptics.ImpactFeedbackStyle.Heavy; // Change this to the desired type
     
+    // function extractVideoId(url) {
+    //     const regex = /[?&]([^=#]+)=([^&#]*)/g;
+    //     let match;
+    //     while ((match = regex.exec(url))) {
+    //       if (match[1] === 'v') {
+    //         return match[2];
+    //       }
+    //     }
+    //     return null;
+    //   }
+
     function extractVideoId(url) {
-        const regex = /[?&]([^=#]+)=([^&#]*)/g;
-        let match;
-        while ((match = regex.exec(url))) {
-          if (match[1] === 'v') {
-            return match[2];
-          }
-        }
-        return null;
-      }
+        const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regex);
+        return match ? match[1] : null;
+    }    
 
     async function upload(inputLink) {
 
         let apiUrl;
 
         const url = inputLink;
+        console.log('url in UploadVideo:', url);
         const videoId = extractVideoId(url);
-        console.log('Video ID:', videoId);
+        console.log('Video ID in UploadVideo:', videoId);
         
         if (process.env.NODE_ENV === 'development') {
             // Running in development mode

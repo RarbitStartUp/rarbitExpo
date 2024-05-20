@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // import Toast from 'react-native-root-toast';
 import Toast from 'react-native-toast-message';
-import { Animated, Button, View, Text, TouchableOpacity, Linking, Pressable, StyleSheet } from 'react-native';
+import { Animated, Button, View, Text, TouchableOpacity, Linking, Pressable, StyleSheet, Switch } from 'react-native';
 import { useNavigation, useRouter, useLocalSearchParams } from 'expo-router';
 import {
     Camera,
@@ -23,15 +23,13 @@ import { useWebSocket } from '../util/useWebSocket';
 // import { useTensorflowModel } from "react-native-fast-tflite";
 import { DisplayCheckedList } from '../components/DisplayCheckedList';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
-import  { CameraRoll } from "@react-native-camera-roll/camera-roll";
-// import * as MediaLibrary from 'expo-media-library';
 import * as Haptics from 'expo-haptics';
 import { MusicButton } from '../components/MusicButton';
 import { useSound } from '../util/SoundProvider';
 import { SoundButton } from '../components/SoundButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NeonLight } from '../components/neonLight';
-import ShowMenuButton from '../components/showMenuButton';
+import { ShowMenuButton } from '../components/showMenuButton';
 import { YouTubePlayer } from '../components/YouTubePlayer'
 import { AntDesign,Entypo,Foundation,Ionicons,MaterialIcons,MaterialCommunityIcons,Octicons,SimpleLineIcons, } from '@expo/vector-icons';
 // import { YouTubeButton } from '../components/YouTubeBotton' 
@@ -44,6 +42,7 @@ import { CornerBorder } from '../components/CornerBorder';
 import { DisplayMedia } from '../components/DisplayMedia';
 // import { PERMISSIONS, RESULTS, check, request } from "react-native-permissions" 
 import * as MediaLibrary from 'expo-media-library';
+import { center } from '@shopify/react-native-skia';
 
 export default function CameraScreen() {
     // Add global unhandled rejection handler
@@ -53,15 +52,15 @@ export default function CameraScreen() {
     };
 
     //***For development :
-     const fullChecklistString = {
-          stepIndex: 0,
-          timestamp: '00:00:02',
-          objects: { 'leek': false, 'knife': true, 'cutting board': true },
-          actions: { 'place the leek': true }
-        };
+    //  const fullChecklistString = {
+    //       stepIndex: 0,
+    //       timestamp: '00:00:02',
+    //     //   objects: { 'leek': false, 'knife': true, 'cutting board': true },
+    //       actions: { 'place the leek on top of the cutting board': true }
+    //     };
 
       //***For production :
-      // const [fullChecklistString, setFullCheck listString] = useState(null);
+      const [fullChecklistString, setFullChecklistString] = useState(null);
       
       // Access the route object to get the passed data
       const { isJsonData, jsonData, videoId } = useLocalSearchParams();
@@ -128,7 +127,8 @@ export default function CameraScreen() {
     const format = useCameraFormat(device, [
         { videoResolution: 'max' },
         { photoResolution: 'max' },
-        { fps: 60 }
+        // { fps: 60 }
+        // { fps: 1 }
       ])
     //   console.log("format.minFps:",format.minFps);
 
@@ -198,20 +198,6 @@ export default function CameraScreen() {
             } catch (error) {
                 console.error('Error saving asset to album:', error);
             }
-
-            // try{
-            //     // await check(PERMISSIONS.IOS.PHOTO_LIBRARY)
-            //     // await CameraRoll.saveAsset(`file://${photo.path}`, {
-            //     await CameraRoll.saveAsset(uri, {
-            //         type: 'photo',
-            //     });
-            //     // Optionally, you can return some data if needed
-                
-            // return { success: true, message: "Photo saved successfully" };
-            // }catch (error) {
-            //     console.error('Error saving photo asset:', error);
-            //     // Handle the error here, such as displaying an error message to the user or logging the error for further investigation
-            // }
         } catch (error) {
             console.error("Error while taking or saving photo:", error);
             // Handle the error here, such as displaying an error message to the user or logging the error for further investigation
@@ -231,6 +217,8 @@ export default function CameraScreen() {
             // console.log("snapshot:", snapshot);
             const uri = snapshot.path;
             console.log("uri:", uri);
+            setPhotoUri(uri); // Set the URI of the taken photo
+            setVideoUri(null); // Reset the video URI
             try {
                 const asset = await MediaLibrary.createAssetAsync(uri);
     
@@ -250,15 +238,6 @@ export default function CameraScreen() {
                 } catch (error) {
                     console.error('Error saving asset to album:', error);
                 }
-            // try{
-            //     // await CameraRoll.saveAsset(`file://${photo.path}`, {
-            //     CameraRoll.saveAsset(uri, {
-            //         type: 'photo',
-            //     });
-            // }catch (error) {
-            //     console.error('Error saving snapshot asset:', error);
-            //     // Handle the error here, such as displaying an error message to the user or logging the error for further investigation
-            // }
         } catch (error) {
             console.error("Error while taking or saving snapshot:", error);
             // Handle the error here, such as displaying an error message to the user or logging the error for further investigation
@@ -307,17 +286,6 @@ export default function CameraScreen() {
                             } catch (error) {
                                 console.error('Error saving asset to album:', error);
                             }
-                        // try{
-                        //     await CameraRoll.saveAsset(
-                        //         // `file://${video.path}`, {
-                        //             videoPath, {
-                        //         type: 'video'}
-                        //     // CameraRoll.saveAsset(uri, {type: 'video'}
-                        //     );
-                        // }catch (error) {
-                        //     console.error('Error saving video asset:', error);
-                        //     // Handle the error here, such as displaying an error message to the user or logging the error for further investigation
-                        // }
                     },
                     onRecordingError: (error) => console.error('Recording error:', error)
                 });
@@ -354,6 +322,7 @@ export default function CameraScreen() {
                 await camera.current.resumeRecording();
                 setIsPaused(false);
             }
+
         } catch (error) {
             console.error("Error while toggling pause:", error);
             // Handle the error here, such as displaying an error message to the user or logging the error for further investigation
@@ -638,6 +607,12 @@ export default function CameraScreen() {
         }
         console.log("toggle button is clicked.")
 
+          // If isSync is true, start recording immediately
+          if ( isSync && !isRecording ) {
+            console.log("isSendingFrames and isRecording are in sync. Starting recording...");
+            toggleRecord(); // Start Recording
+        }
+
         if (!isWebSocketOpen) {
             Toast.show({
                 type:'success',
@@ -679,7 +654,37 @@ export default function CameraScreen() {
         const newIsSendingFramesState = !isSendingFrames; // Calculate the new state value
         console.log("New isSendingFrames state:", newIsSendingFramesState); // Log the new state value
         setIsSendingFrames(newIsSendingFramesState); // Update the state
+        console.log("isSendingFrames button is pressed.");
+
+        // If isSync is true and isRecording is true, and isSendingFrames is false,
+        // then pause the recording
+        // if (isSync && isRecording && !isSendingFrames) {
+        //     console.log("(Sync mode)isSendingFrames is false and isRecording is true. Pausing recording...");
+        //     togglePause(); // Pause recording
+        // }
     };
+
+        // Use useEffect to trigger togglePause when isSendingFrames changes
+        useEffect(() => {
+            if (isSync && isRecording && (!isPaused && !isSendingFrames)) {
+                console.log("(Sync mode)isSendingFrames is false and isRecording is true. Pausing recording...");
+                togglePause(); // Pause recording
+            }
+        }, [isSendingFrames, isRecording, isSync]);
+
+        useEffect(() => {
+            if (isSync && isRecording && (isPaused && !isSendingFrames)) {
+                console.log("(Sync mode) isSendingFrames is false and isRecording is true. Pausing recording...");
+                togglePause(); // Resume recording
+            }
+        }, [isSendingFrames, isRecording, isSync]);     
+
+        useEffect(() => {
+            if (isSync && isRecording && (isPaused && isSendingFrames)) {
+                console.log("(Sync mode) isSendingFrames is false and isRecording is true. Pausing recording...");
+                togglePause(); // Resume recording
+            }
+        }, [isSendingFrames, isRecording, isSync]);        
 
     console.log("isSendingFrames :", isSendingFrames);
     // Determine the connection status based on the socket
@@ -714,7 +719,7 @@ export default function CameraScreen() {
     //   []
     // );
 
-    const snapPoints = useMemo(() => ["25%", "35%", "70%"], []);
+    const snapPoints = useMemo(() => ["25%","35%", "70%"], []);
   
     // callbacks
     const handleSheetChange = useCallback((index) => {
@@ -727,10 +732,10 @@ export default function CameraScreen() {
       sheetRef.current?.close();
     }, []);
 
-    const [snapState, setSnapState] = useState(2); // Initial state
+    const [snapState, setSnapState] = useState(1); // Initial state
   
     const toggleSnapPoints = () => {
-        const newState = snapState === 2 ? 1 : 2; // Toggle between 2 and 0
+        const newState = snapState === 2 ? 1 : 2; // Toggle between 0 and 1
         setSnapState(newState);
         handleSnapPress(newState);
     };
@@ -814,6 +819,17 @@ export default function CameraScreen() {
             }, 3000); // 3000 milliseconds = 3 seconds
     };
 
+    const[isSync, setIsSync]= useState(false);
+
+    function toggleSync (){
+        if(isSendingFrames){
+            setIsRecording(!isRecording);
+            console.log("toggleRecord is called inside toggleSync.")
+        };
+        setIsSync(!isSync);
+        console.log("isSync button is pressed.")
+    };
+
     return (
         <>
         {/* <View
@@ -864,6 +880,7 @@ export default function CameraScreen() {
                         // photo={hasCameraPermission}
                         // audio={hasMicrophonePermission}
                         frameProcessor={frameProcessor}
+                        // qualityBalance="speed"
                     />
                     {/* </GestureDetector> */}
                     </View>
@@ -873,11 +890,35 @@ export default function CameraScreen() {
                     <Text>Camera not available</Text>
                 </View>
             )}
-            <View className="flex-col absolute top-10">
+           <View
+                style={{
+                    flex: 1,
+                    position: 'absolute',
+                    top: 70,
+                    ...(isRightPosition ? { right: 10 } : { left: 10 }), // Dynamic styles
+                    // flexDirection: 'row-reverse',
+                    // alignItems: 'center'
+                }}
+            >
+            <ShowMenuButton>
+            <View className="flex-col h-full">
                     <CameraButton
                         onPress={toggleCamera}
                     >
-                        <MaterialIcons name="cameraswitch" size={35} color="#eaeaea" />
+                        {/* <MaterialIcons name="cameraswitch" size={35} color="#eaeaea" /> */}
+                        <MaterialIcons 
+                            name="cameraswitch" 
+                            size={35} 
+                            // color="#727272" 
+                            color="#eaeaea" 
+                            style={{ 
+                                // shadowColor: '#f60ee0', 
+                                // shadowOffset: { width: 2, height: 2 }, 
+                                // shadowOpacity: 1, 
+                                // shadowRadius: 10, 
+                                // elevation: 5 // This is for Android elevation
+                            }} 
+                        />
                     </CameraButton>
                     <CameraButton
                         onPress={onTakeSnapshot}
@@ -890,17 +931,21 @@ export default function CameraScreen() {
                         <Entypo name="camera" size={30} color="#eaeaea" />
                     </CameraButton>
                     <CameraButton
+                        isSendingFrames={isSendingFrames}
                         onPress={toggleSendingFrames}
                     >
                         <Text className="text-ai-gray text-2xl font-bold">AI</Text>
                     </CameraButton>
                     <CameraButton
+                        isRecording={isRecording}
                         onPress={toggleRecord}
                     >
                         <Ionicons name="videocam" size={30} color="#eaeaea" />
                     </CameraButton>
                     { isRecording && ( 
                         <CameraButton 
+                            isPaused={isPaused}
+                            isRecording={isRecording}
                             onPress={togglePause}
                             disabled={!isRecording}      
                         >
@@ -925,6 +970,8 @@ export default function CameraScreen() {
                     </CameraButton>
                     {/* <Text>{uri}</Text> */}
                     <DisplayMedia photoUri={photoUri} videoUri={videoUri} />
+                   </View>
+                </ShowMenuButton>
                 </View>
                     {/* <TouchableOpacity title="Snap To 50%" onPress={() => handleSnapPress(1)} />
                     <TouchableOpacity title="Snap To 25%" onPress={() => handleSnapPress(0)} />
@@ -952,21 +999,39 @@ export default function CameraScreen() {
                            
                             {/* <View style={{ flex: 1 / 3 }} */}
                             {/* <View className="basis-1/3 bg-gray-700" > */}
-                            <View className="flex-row my-5 px-5 w-full items-center justify-around">
-                                <View className="flex flex-row items-center justify-between">
-                                    <TouchableOpacity onPress={() => toggleTab('aiResult')}>
-                                    <Text className="text-gray-700 text-xl font-bold mr-2">AI channel</Text>
-                                    </TouchableOpacity>
+                            <View className="flex-row my-5 px-5 w-full items-center justify-between">
+                                <View className="flex flex-row items-center">
+                                    {/* <TouchableOpacity onPress={() => toggleTab('aiResult')}> */}
+                                    <Text className="text-gray-700 text-xl font-bold">AI channel</Text>
+                                    {/* </TouchableOpacity> */}
                                     <NeonLight isWebSocketOpen={isWebSocketOpen}/>
                                 </View>
+                                {/* <Switch
+                                    // Other props...
+                                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                                    thumbColor={ isRightPosition ? "#ffffff" : "#f4f3f4"}
+                                /> */}
+                                    <View className="flex-row space-x-3 items-center mr-5">
+                                    {/* {isRightPosition ?
+                                        (<Octicons name={'sync'} size={24} color="#eaeaea" />)
+                                        :
+                                        (<MaterialCommunityIcons name={'sync-off'} size={24} color="#eaeaea" />)
+                                    } */}
+                                    {/* <MaterialIcons name={'video-camera-front'} size={25} color="#ffffff" /> */}
+                                        <Switch
+                                        // style={{ transform: [{ scaleX: 1 }, { scaleY: 1 }]  }}
+                                        value={isSync}
+                                        onValueChange={toggleSync}
+                                        trackColor={{ false: "#767577", true: "#e2c5ca" }}
+                                        thumbColor={ isSync ? "#ffffff" : "#f4f3f4"}
+                                        />
+                                    </View>
                                 <MusicButton color='#ffffff'/>
                                 <SoundButton color='#ffffff'/>
-                                <View className="mr-5">
                                         {/* <TouchableOpacity onPress={() => handleSnapPress(2)}> */}
-                                        <TouchableOpacity onPress={toggleSnapPoints}>
-                                        <AntDesign name="youtube" size={30} color="#ff0000"/>
-                                        </TouchableOpacity>
-                                </View>
+                                <TouchableOpacity onPress={toggleSnapPoints}>
+                                    <AntDesign name="youtube" size={30} color="#ff0000"/>
+                                </TouchableOpacity>
                                 {/* <View className="mr-5">
                                         <TouchableOpacity>
                                         <Octicons name="list-unordered" size={30} color="#ffffff"/>
@@ -984,21 +1049,16 @@ export default function CameraScreen() {
                                             </TouchableOpacity>
                                     )}
                                     </View> */}
-                                <ShowMenuButton/>
+                                {/* <ShowMenuButton/> */}
                                 {/* <MaterialCommunityIcons name="theme-light-dark" size={35} color="#d2d2d2" /> */}
                             </View>
                         {/* { selectedTab === 'aiResult' ? ( */}
-                        
-                        <BottomSheetScrollView>
+
+                        <BottomSheetScrollView >
                             {/* {data.map(renderItem)} */}
-
-                        <View className="px-5">
-                        { fullChecklistString && jsonData && <DisplayCheckedList fullChecklistString={fullChecklistString} jsonData={jsonData}/>}
-                        </View>
-
-
+                        {/* { fullChecklistString && jsonData && <DisplayCheckedList fullChecklistString={fullChecklistString} jsonData={jsonData} videoId={videoId}/>} */}
+                        { jsonData && <DisplayCheckedList fullChecklistString={fullChecklistString} jsonData={jsonData} videoId={videoId}/>}
                             </BottomSheetScrollView>
-                        { videoId && <YouTubePlayer videoId = {videoId} />}
                         </LinearGradient>
                         </BottomSheet>
         </GestureHandlerRootView>

@@ -13,34 +13,45 @@ import {
 import { button } from '../style/NativeWind.js';
 import Toast from 'react-native-toast-message';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MusicButton } from '../components/MusicButton';
+import { SoundButton } from '../components/SoundButton';
+import { Entypo,AntDesign,FontAwesome5,FontAwesome6,Ionicons,MaterialIcons, MaterialCommunityIcons} from '@expo/vector-icons';
+import { GradientText } from '../components/GradientText';
 
 
 export default function Checkbox() {
     // Access the route object to get the passed data
     
     // ***For Production ( comment out for development - 5 lines ):
-    const { responseData } = useLocalSearchParams();
-    console.log('responseData in Checkbox.jsx:', responseData);
+    // const { responseData, videoId } = useLocalSearchParams();
+    // console.log('responseData in Checkbox.jsx:', responseData);
+    // console.log('videoId in Checkbox.jsx:', videoId);
         
-    const parsedResponseData = JSON.parse(responseData);
-    console.log('parsedResponseData in Checkbox.jsx :', parsedResponseData);
-    const checklist = parsedResponseData.checklist;
+    // const parsedResponseData = JSON.parse(responseData);
+    // console.log('parsedResponseData in Checkbox.jsx :', parsedResponseData);
+    // const checklist = parsedResponseData.checklist;
 
     // ***For Development ( comment out for production - 1 line ):
-    // const checklist = [{"timestamp":"00:00:02","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut":true}},{"timestamp":"00:00:10","objects":{"leek":true,"water":true,"bowl":true},"actions":{"wash":true}},{"timestamp":"00:00:38","objects":{"leek":true,"paper towel":true},"actions":{"dry":true}},{"timestamp":"00:00:43","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut":true}},{"timestamp":"00:01:03","objects":{"leek":true,"bowl":true},"actions":{"store":true}}]
+    const videoId = 'CzC3qngNEcA';
+    // const checklist = [{"timestamp": "00:00:00", "objects": {"leeks": true, "knife": true, "cutting board": true, "bowl": true, "water": true, "paper towel": true}, "actions": {"place leeks on cutting board": true, "trim the root end of leeks": true, "remove the dark tops of leeks": true}}, {"timestamp": "00:33:00", "objects": {"leeks": true, "knife": true}, "actions": {"cut leeks into 4 inch sections": true, "slice leeks in half lengthwise": true}}, {"timestamp": "00:39:00", "objects": {"leeks": true, "bowl": true, "water": true}, "actions": {"place leek sections in bowl of water": true, "clean leeks in water": true, "check layers of leeks for hidden dirt": true}}, {"timestamp": "00:55:00", "objects": {"leeks": true, "knife": true, "bowl": true, "water": true, "paper towel": true}, "actions": {"slice leeks": true, "rinse leeks in bowl of water": true, "lift leeks out of bowl": true, "place leeks on paper towel": true, "store leeks in fridge": true}}]
+    const checklist = [{"timestamp": "00:20", "actions": {"Trim the root end": true}}, {"timestamp": "00:25", "actions": {"Remove the dark tops": true}}, {"timestamp": "00:33", "actions": {"Cut the leek into sections": true}}, {"timestamp": "00:37", "actions": {"Slice the leek in half lengthwise": true}}, {"timestamp": "00:39", "actions": {"Clean the leek": true}}, {"timestamp": "00:55", "actions": {"Clean the leek after cutting": true}}, {"timestamp": "00:57", "actions": {"Slice the leek": true}}, {"timestamp": "01:03", "actions": {"Rinse the leek": true}}, {"timestamp": "01:07", "actions": {"Lift the leek": true}}]
     
     // log the checklist :
     console.log('checklist in Checkbox.jsx :', checklist);
 
     const [jsonData, setJsonData] = useState(checklist); // Added state for jsonData
-    const [objectInputValues, setObjectInputValues] = useState(['']);
+    // const [objectInputValues, setObjectInputValues] = useState(['']);
     const [actionInputValues, setActionInputValues] = useState(['']);
-    const [objectItems, setObjectItems] = useState([]);
+    // const [objectItems, setObjectItems] = useState([]);
     const [actionItems, setActionItems] = useState([]);
 
     const router = useRouter();
+    const insets = useSafeAreaInsets();
+    const isJsonData = true;
+
     const { socket, isWebSocketOpen } = useWebSocket();
-    console.log('socket:', socket);
+    // console.log('socket:', socket);
     console.log('isWebSocketOpen:', isWebSocketOpen);
     console.log('WebSocket readyState:', socket.readyState);
 
@@ -76,13 +87,13 @@ export default function Checkbox() {
             let allActions = [];
 
             jsonData.forEach(stepData => {
-                const objects = Object.keys(stepData.objects);
+                // const objects = Object.keys(stepData.objects);
                 const actions = Object.keys(stepData.actions);
-                allObjects = [...allObjects, ...objects];
+                // allObjects = [...all Objects, ...objects];
                 allActions = [...allActions, ...actions];
             });
 
-            setObjectItems(allObjects);
+            // setObjectItems(allObjects);
             setActionItems(allActions);
         }
     }, [jsonData]);
@@ -168,18 +179,6 @@ export default function Checkbox() {
         }
     };
 
-    // Function to navigate to CameraScreen with jsonData
-    const navigateToCameraScreen = () => {
-        console.log('Submit button pressed');
-        if (socket) {
-            // Send jsonData to Socket.IO server
-            socket.emit('jsonData', jsonData);
-            console.log("JSON data on submit button:", jsonData);
-        }
-        router.push({ pathname: "/cameraScreen"});
-        // router.push({ pathname: "/cameraScreen", params: { jsonData: JSON.stringify(jsonData) } });
-    };
-
     // Function to add an item to a specific step
     const addItemToStep = (listId, inputId, stepIndex) => {
         try {
@@ -226,82 +225,81 @@ export default function Checkbox() {
         }
     };
 
+    // Function to navigate to CameraScreen with jsonData
+    const navigateToCameraScreen = () => {
+        console.log('Submit button pressed');
+        if (socket) {
+            // Send jsonData to Socket.IO server
+            socket.emit('jsonData', jsonData);
+            console.log("JSON data on submit button:", jsonData);
+        }
+        console.log("isJsonData :", isJsonData);
+        // router.push({ pathname: "/cameraScreen"});
+        router.push({ pathname: "/cameraScreen", params: { isJsonData: JSON.stringify(isJsonData), jsonData: JSON.stringify(jsonData), videoId : videoId } });
+    };
+
     console.log('jsonData in Checkbox component before rendering :', jsonData);
 
     return (
+        <>
+        <View
+            style={{
+            paddingTop: insets.top,
+            // paddingLeft: insets.left,
+            // paddingBottom: insets.bottom,
+            paddingRight: insets.right,
+            }}
+            />
+            {/* <View className="flex flex-1 items-center h-full relative "> */}
+                <View className="flex flex-row justify-end items-center px-5 pb-5 w-full">
+                <MusicButton/>
+                <SoundButton/>
+                <FontAwesome6 name="circle-user" size={35} color="#d2d2d2"/>
+                </View>
         <View style={{ flex: 1 }}>
-            <ScrollView className="flex-1 p-10">
+            <ScrollView className="flex-1 px-10 space-y-10">
                 {jsonData ? jsonData.map((step, stepIndex) => (
-                    <View key={stepIndex + 1} className="mb-10">
-                        <Text>Step{stepIndex + 1}:</Text>
-                        <Text>{step.timestamp}</Text>
-                        <View className="mb-10">
-                            <Text>Objects</Text>
-                            {Object.keys(step.objects).map((objectKey, objIndex) => (
-                                <View key={objIndex} className="flex-row items-center mb-2">
-                                    <Text>{objIndex + 1}. {objectKey}</Text>
-                                    <TouchableOpacity
-                                        className={button({ size: 'sm', color: 'secondary' })}
-                                        onPress={() =>
-                                            removeNewItem('objectList', objectKey, stepIndex)
-                                        }>
-                                        <Text>Remove</Text>
-                                    </TouchableOpacity>
+                    <View key={stepIndex + 1}>
+                        <View className="flex flex-col w-full space-y-5 justify-between items-start">
+                        <View className="flex flex-row w-full space-x-5 items-center">
+                            <Text className="text-2xl font-bold text-purple-500">Step {stepIndex + 1} :</Text>
+                                <View className="flex flex-row w-full space-x-2 items-center">
+                                    <Text className="text-gray-500">{step.timestamp}</Text>
+                                    <MaterialIcons name="access-time" size={20} color="#939393" />
                                 </View>
-                            ))}
-                            <View className="flex-row items-center mb-2">
-                                <TextInput
-                                    value={objectInputValues[stepIndex]}
-                                    onChangeText={text => {
-                                        const newValues = [...objectInputValues];
-                                        newValues[stepIndex] = text;
-                                        setObjectInputValues(newValues);
-                                    }}
-                                    className="flex-1 p-5 border-1 mr-10"
-                                    placeholder={`Add new object for Step ${stepIndex + 1}`}
-                                />
-                                {/* {console.log("newItemInputRef.current:", newItemInputRef.current)} */}
-                                {/* {console.log("newItemInputRef.current._internalFiberInstanceHandleDEV.memoizedProps.forwardedRef.current.memoizedProps:", newItemInputRef.current._internalFiberInstanceHandleDEV.memoizedProps.forwardedRef.current.memoizedProps)} */}
-                                <TouchableOpacity
-                                    className={button({ size: 'sm', color: 'secondary' })}
-                                    onPress={() =>
-                                        addItemToStep(
-                                            'objectList',
-                                            `newObjectInput${stepIndex}`,
-                                            stepIndex,
-                                        )
-                                    }>
-                                    <Text>Add</Text>
-                                </TouchableOpacity>
-                            </View>
                         </View>
-                        <View>
-                            <Text>Actions</Text>
+                        <View className="flex flex-col space-y-5 mb-10">
+                       
+                        {/* <View> */}
+                        <View className="flex flex-col space-y-5 mb-10">
+                        <View className="flex flex-row w-full space-x-2 items-center">
+                            <Text className="text-lg font-semibold">Actions</Text>
+                            <MaterialCommunityIcons name="human-handsdown" size={20} color="#939393" />
+                        </View>
                             {Object.keys(step.actions).map((actionKey, actIndex) => (
-                                <View key={actIndex} className="flex-row items-center mb-2">
-                                    <Text>{actIndex + 1}. {actionKey}</Text>
+                                <View key={actIndex} className="flex flex-row justify-between w-full items-center">
+                                    <Text className="text-lg font-semibold">{actIndex + 1}. {actionKey}</Text>
                                     <TouchableOpacity
-                                        className={button({ size: 'sm', color: 'secondary' })}
                                         onPress={() =>
                                             removeNewItem('actionList', actionKey, stepIndex)
                                         }>
-                                        <Text>Remove</Text>
+                                        <Ionicons name="remove" size={20} color="#939393" />
                                     </TouchableOpacity>
                                 </View>
                             ))}
-                            <View className="flex-row items-center mb-2">
+                            <View className="flex flex-row justify-between w-full items-center">
                                 <TextInput
                                     value={actionInputValues[stepIndex]}
                                     onChangeText={text => {
+                                        const lowerCaseText = text.toLowerCase(); // Convert text to lowercase
                                         const newValues = [...actionInputValues];
-                                        newValues[stepIndex] = text;
+                                        newValues[stepIndex] = lowerCaseText;
                                         setActionInputValues(newValues);
                                     }}
-                                    className="flex-1 p-5 border-1 mr-10"
+                                    className="pl-5 pt-2 text-lg mr-10"
                                     placeholder={`Add new action for Step ${stepIndex + 1}`}
                                 />
                                 <TouchableOpacity
-                                    className={button({ size: 'sm', color: 'secondary' })}
                                     onPress={() =>
                                         addItemToStep(
                                             'actionList',
@@ -309,10 +307,12 @@ export default function Checkbox() {
                                             stepIndex,
                                         )
                                     }>
-                                    <Text>Add</Text>
+                                    <FontAwesome6 name="add" size={20} color="#939393" />
                                 </TouchableOpacity>
                             </View>
                         </View>
+                        </View>
+                    </View>
                     </View>
                 )) : null}
             </ScrollView>
@@ -330,5 +330,6 @@ export default function Checkbox() {
                 />
             </View>
         </View>
+    </>
     );
 }

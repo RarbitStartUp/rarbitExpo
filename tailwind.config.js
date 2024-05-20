@@ -8,6 +8,7 @@ module.exports = {
     extend: {
       colors:{
         "ai-gray": "#eaeaea",
+        "object-check" : '#a0e7e1',
       },
       fontSize:{
         "title" : "2xl"

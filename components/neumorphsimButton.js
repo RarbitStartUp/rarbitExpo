@@ -20,18 +20,25 @@ export const NeuButton = ({
   const [scaleValue] = useState(new Animated.Value(1));
 
   const animateButton = () =>{
+    Animated.sequence([
     Animated.timing(scaleValue,{
       toValue:0.97,
-      duration:200,
+      duration:100,
       useNativeDriver:true
-    }).start(()=>{
+    }),
       Animated.timing(scaleValue,{
           toValue :1,
-          duration:200,
+          duration:100,
           useNativeDriver: true
-      }).start();
-    });
+      })
+    ]).start(() => {
+        if (onPress) {
+          // Execute onPress after animation completes
+          setTimeout(onPress, 100);
+        }
+      });
   }; 
+  
     return (
       // <Animated.View style=
       //           {[
@@ -44,10 +51,7 @@ export const NeuButton = ({
       //           ]
       //           }>
       <AnimatedTouchableOpacity
-      onPress={() => {
-        onPress();
-        animateButton();
-      }}
+      onPress={animateButton}
       disabled={disabled}
       style={{
           height: height ? height : 50,
@@ -74,10 +78,7 @@ export const NeuButton = ({
         }}
   >
     <AnimatedTouchableOpacity
-    onPress={() => {
-      onPress();
-      animateButton();
-    }}
+    onPress={animateButton}
     disabled={disabled}
       style={{
           height: height ? height : 50,

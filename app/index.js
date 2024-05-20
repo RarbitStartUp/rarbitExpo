@@ -13,7 +13,6 @@ import { SoundButton } from '../components/SoundButton';
 import { useSound } from '../util/SoundProvider';
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { YouTubePlayer } from '../components/YouTubePlayer';
 
 import * as Haptics from 'expo-haptics';
 import Reanimated, {
@@ -57,7 +56,7 @@ export default function Index(){
       haptics(heavy);
       playSound(buttonClickSound);
       console.log('Open Camera button pressed');
-      router.push({ pathname: "/checkboxDev"});
+      router.push({ pathname: "/checkbox"});
   };
 
      const navigateToBSUserList = () => {

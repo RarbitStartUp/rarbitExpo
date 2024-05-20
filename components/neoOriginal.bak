@@ -16,25 +16,25 @@ export const NeonLight = ({isWebSocketOpen})=>{
             <View style={{
                  width: 7,
                  height:7,
-                 backgroundColor: isWebSocketOpen ? '#dab4ba' : '#e2e2e2',
+                 backgroundColor: isWebSocketOpen ? '#11FF5C' : '#e2e2e2',
+                 shadowColor: isWebSocketOpen ? '#11FF5C' : '#e2e2e2' ,
+                 shadowOpacity: isWebSocketOpen ? 10 : 0,
+                 shadowOffset:{width:2 ,height:2},
+                 shadowRadius: 5,
+                 elevation: 5, // Needed for Android
                  borderRadius:10,
-                //  shadowColor: isWebSocketOpen ? '#dab4ba' : '#e2e2e2' ,
-                //  shadowOpacity: isWebSocketOpen ? 1 : 0,
-                //  shadowOffset:{width:1 ,height:1},
-                //  shadowRadius: 5,
-                //  elevation: 5, // Needed for Android
             }}
             >
             <View style={{
                  width: 7,
                  height:7,
-                 backgroundColor: isWebSocketOpen ? '#dab4ba' : '#e2e2e2',
+                 backgroundColor: isWebSocketOpen ? '#11FF5C' : '#e2e2e2',
+                 shadowColor: isWebSocketOpen ? '#11FF5C' : '#e2e2e2',
+                 shadowOpacity: isWebSocketOpen ? 10 : 0,
+                 shadowOffset:{width:-2 ,height:-2},
+                 shadowRadius:5,
+                 elevation: 5, // Needed for Android
                  borderRadius:10,
-                //  shadowColor: isWebSocketOpen ? '#dab4ba' : '#e2e2e2',
-                //  shadowOpacity: isWebSocketOpen ? 1 : 0,
-                //  shadowOffset:{width:-1 ,height:-1},
-                //  shadowRadius:5,
-                //  elevation: 5, // Needed for Android
             }}
             >
             </View>

@@ -3,6 +3,7 @@ import { View,Modal,PanResponder, TouchableWithoutFeedback, Text, Dimensions } f
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
 import  LottieView  from 'lottie-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export const DisplayMedia = ({ photoUri, videoUri}) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -11,6 +12,8 @@ export const DisplayMedia = ({ photoUri, videoUri}) => {
     const [status, setStatus] = useState({});
 
     const video = useRef(null);
+//     const blurhash =
+//   '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
     if(videoUri){
         console.log("videoUri:",videoUri);
@@ -26,7 +29,7 @@ export const DisplayMedia = ({ photoUri, videoUri}) => {
                 setModalPosition(gestureState.dy);
             },
             onPanResponderRelease: (evt, gestureState) => {
-                if (gestureState.dy > 100) {
+                if (gestureState.dy > 50) {
                     setModalVisible(false); // Dismiss modal if swiped down beyond 100 pixels
                 } else {
                     setModalPosition(0); // Reset modal position if not swiped down enough
@@ -55,7 +58,7 @@ export const DisplayMedia = ({ photoUri, videoUri}) => {
             <TouchableWithoutFeedback onPress={enlargeMedia}>
                 <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                     {photoUri && (
-                        <Image source={{ uri: photoUri }} style={{ width:50, height:65, borderWidth:2, borderColor:'white', borderRadius:10 }} />
+                        <Image source={{ uri: photoUri }} style={{ width:50, height:65, borderWidth:2, borderColor:'white', borderRadius:10 }}/>
                     )}
                     { videoUri && (
                         <Video
@@ -83,12 +86,15 @@ export const DisplayMedia = ({ photoUri, videoUri}) => {
                         {...(panResponder ? panResponder.panHandlers : {})}
                     >
                     {photoUri && (
+                        <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)' }}>
                         <Image 
                         source={{ uri: photoUri }} 
                         style={{ width: Dimensions.get('window').width, height: Dimensions.get('window').height }} 
                         contentFit="contain"
+                        // placeholder={{blurhash}}
                         // transition={1000}
                          />
+                         </View>
                     )}
                     {videoUri && (
                         <>
@@ -123,7 +129,7 @@ export const DisplayMedia = ({ photoUri, videoUri}) => {
                     {/* <View className="flex-1 absolute">
                           <Text className="text-white relative bottom-10 w-full flex items-center">Swipe down to dismiss</Text>
                     </View> */}
-                    <View style={{ flex: 1, position: 'absolute', bottom: 30, left: 0, right: 0, alignItems: 'center' }}>
+                    <View style={{ flex: 1, position: 'absolute', bottom: 50, left: 0, right: 0, alignItems: 'center' }}>
                         <Text className="text-white font-semibold">Swipe down to dismiss</Text>
                         <LottieView
                                 autoPlay={true}

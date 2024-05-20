@@ -42,6 +42,14 @@ export const WebSocketProvider = ({ children }) => {
                 setIsWebSocketOpen(false);
             });
 
+            socket.on('reconnect_attempt', () => {
+                console.log('Attempting to reconnect to WebSocket');
+            });
+
+            socket.on('reconnect', () => {
+                console.log('Reconnected to WebSocket');
+            });
+
             setSocket(socket);
         };
 
@@ -50,7 +58,7 @@ export const WebSocketProvider = ({ children }) => {
         // Clean up the WebSocket instance and event listeners when the component is unmounted
         return () => {
             if (socket) {
-                socket.close();
+                socket.disconnect();
             }
         };
     }, [socketUrl]);

@@ -34,7 +34,8 @@ export default function Checkbox() {
 
     // ***For Development ( comment out for production - 1 line ):
     const videoId = 'CzC3qngNEcA';
-    const checklist = [{"timestamp":"00:00:02","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"place the leek":true}},{"timestamp":"00:00:10","objects":{"leek":true,"water":true,"bowl":true},"actions":{"wash the leek":true}},{"timestamp":"00:00:38","objects":{"leek":true,"paper towel":true},"actions":{"dry the leek":true}},{"timestamp":"00:00:43","objects":{"leek":true,"knife":true,"cutting board":true},"actions":{"cut the leek":true}},{"timestamp":"00:01:03","objects":{"leek":true,"bowl":true},"actions":{"store the leek":true}}]
+    // const checklist = [{"timestamp": "00:00:00", "objects": {"leeks": true, "knife": true, "cutting board": true, "bowl": true, "water": true, "paper towel": true}, "actions": {"place leeks on cutting board": true, "trim the root end of leeks": true, "remove the dark tops of leeks": true}}, {"timestamp": "00:33:00", "objects": {"leeks": true, "knife": true}, "actions": {"cut leeks into 4 inch sections": true, "slice leeks in half lengthwise": true}}, {"timestamp": "00:39:00", "objects": {"leeks": true, "bowl": true, "water": true}, "actions": {"place leek sections in bowl of water": true, "clean leeks in water": true, "check layers of leeks for hidden dirt": true}}, {"timestamp": "00:55:00", "objects": {"leeks": true, "knife": true, "bowl": true, "water": true, "paper towel": true}, "actions": {"slice leeks": true, "rinse leeks in bowl of water": true, "lift leeks out of bowl": true, "place leeks on paper towel": true, "store leeks in fridge": true}}]
+    const checklist = [{"timestamp": "00:20", "actions": {"Trim the root end": true}}, {"timestamp": "00:25", "actions": {"Remove the dark tops": true}}, {"timestamp": "00:33", "actions": {"Cut the leek into sections": true}}, {"timestamp": "00:37", "actions": {"Slice the leek in half lengthwise": true}}, {"timestamp": "00:39", "actions": {"Clean the leek": true}}, {"timestamp": "00:55", "actions": {"Clean the leek after cutting": true}}, {"timestamp": "00:57", "actions": {"Slice the leek": true}}, {"timestamp": "01:03", "actions": {"Rinse the leek": true}}, {"timestamp": "01:07", "actions": {"Lift the leek": true}}]}
     
     // log the checklist :
     console.log('checklist in Checkbox.jsx :', checklist);
@@ -50,7 +51,7 @@ export default function Checkbox() {
     const isJsonData = true;
 
     const { socket, isWebSocketOpen } = useWebSocket();
-    console.log('socket:', socket);
+    // console.log('socket:', socket);
     console.log('isWebSocketOpen:', isWebSocketOpen);
     console.log('WebSocket readyState:', socket.readyState);
 

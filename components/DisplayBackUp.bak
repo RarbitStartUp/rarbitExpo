@@ -62,7 +62,7 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
     }, [fullChecklistString]);
 
     useEffect(() => {
-        if (allActionsAreTrue(fullChecklistString)) {
+        if (allObjectsAndActionsAreTrue(fullChecklistString)) {
             if (currentStepIndex < aiStepIndex) {
                 setCurrentStepIndex(prevIndex => prevIndex + 1);
             }
@@ -190,60 +190,63 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
         );
     }},[]);
 
-    // const renderChecklistObjectsItems = (checklistItems, checkboxStates) => {
+    const renderChecklistObjectsItems = (checklistItems, checkboxStates) => {
 
-    //     // Create two arrays to store true and false items
-    // const trueItems = [];
-    // const falseItems = [];
+        // Create two arrays to store true and false items
+    const trueItems = [];
+    const falseItems = [];
 
-    // // Separate items based on their detection status
-    // Object.keys(checklistItems).forEach((item) => {
-    //     if (checkboxStates[item]) {
-    //         trueItems.push(item);
-    //     } else {
-    //         falseItems.push(item);
-    //     }
-    // });
-
-    // // Combine true and false items, placing true items after false items
-    // const combinedItems = [...falseItems, ...trueItems];
-
-    //     return (
-    //         <ScrollView horizontal contentContainerStyl={{ flexDirection: 'row', alignItems: 'center' }}>
-    //             <View className="flex-row items-center w-full justify-stretch">
-    //             {/* <View className="flex-row flex-wrap items-center w-full justify-stretch"> */}
-    //                 {/* {Object.keys(checklistItems).map((item, index) => { */}
-    //                 {combinedItems.map((item, index) => (
-                        
-    //                         <View key={index + 1}>
-    //                             {/* Add a View with styling for the surrounding box */}
-    //                             < View className={`bg-white/30 rounded-md border-4 rounded-2xl py-2 my-1 mx-2 ${checkboxStates[item] ? 'border-object-check/100' : 'border-transparent'}`}>
-    //                                 {/* Render the item text inside the box */}
-    //                                 <Text className="mx-3 text-lg font-bold">{item}</Text>
-    //                             </View>
-    //                         </View>
-    //                 ))}
-    //             </View>
-    //         </ScrollView>
-    //     );
-    // };
-    
-    function allActionsAreTrue(fullChecklistString) {
-        if (!fullChecklistString || !fullChecklistString.actions) {
-            return false;
+    // Separate items based on their detection status
+    Object.keys(checklistItems).forEach((item) => {
+        if (checkboxStates[item]) {
+            trueItems.push(item);
+        } else {
+            falseItems.push(item);
         }
+    });
+
+    // Combine true and false items, placing true items after false items
+    const combinedItems = [...falseItems, ...trueItems];
+
+        return (
+            <ScrollView horizontal contentContainerStyl={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View className="flex-row items-center w-full justify-stretch">
+                {/* <View className="flex-row flex-wrap items-center w-full justify-stretch"> */}
+                    {/* {Object.keys(checklistItems).map((item, index) => { */}
+                    {combinedItems.map((item, index) => (
+                        
+                            <View key={index + 1}>
+                                {/* Add a View with styling for the surrounding box */}
+                                < View className={`bg-white/30 rounded-md border-4 rounded-2xl py-2 my-1 mx-2 ${checkboxStates[item] ? 'border-object-check/100' : 'border-transparent'}`}>
+                                    {/* Render the item text inside the box */}
+                                    <Text className="mx-3 text-lg font-bold">{item}</Text>
+                                </View>
+                            </View>
+                    ))}
+                </View>
+            </ScrollView>
+        );
+    };
     
-        const { actions } = fullChecklistString;
-    
+    function allObjectsAndActionsAreTrue(fullChecklistString) {
+        const { objects, actions } = fullChecklistString;
+      
+        // Check if all objects are true
+        for (const item in objects) {
+          if (!objects[item]) {
+            return false;
+          }
+        }
+      
         // Check if all actions are true
         for (const item in actions) {
-            if (!actions[item]) {
-                return false;
-            }
+          if (!actions[item]) {
+            return false;
+          }
         }
-    
+      
         return true;
-    }    
+    }
 
     console.log("currentStepIndex:",currentStepIndex);
     console.log("aiStepIndex:",aiStepIndex);
@@ -262,7 +265,7 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
 
     return (
         <View className="space-y-3">
-            { fullChecklistString && allActionsAreTrue(fullChecklistString) && (
+            { allObjectsAndActionsAreTrue(fullChecklistString) && (
                         <View className="flex flex-col px-5">
                         <View className="flex flex-row items-center w-full justify-between">
                         <Text className="text-white text-xl font-bold">You have finished all steps!</Text>
@@ -302,8 +305,11 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
                                 {/* <Text>Timestamp : {step.timestamp}</Text> */}
                                 <View className="flex flex-row w-full space-x-3 items-center" style={{height:58}}>
                                 {/* <MaterialCommunityIcons name="human-handsdown" size={20} color="#939393" /> */}
-                                        {renderChecklistActionsItems(step.actions,  fullChecklistString?.actions || {})}
-                                        {/* {renderChecklistActionsItems(step.actions, fullChecklistString.actions)} */}
+                                        {renderChecklistActionsItems(step.actions, fullChecklistString.actions)}
+                                </View>
+                                <View className="flex flex-row w-full space-x-2 items-center">
+                                    {/* <Ionicons name="cube-outline" size={20} color="#939393" /> */}
+                                        {renderChecklistObjectsItems(step.objects, fullChecklistString.objects)}
                                 </View>
                                 </View>
                             </View>
