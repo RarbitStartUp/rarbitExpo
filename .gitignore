@@ -1,10 +1,12 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# iOS
-ios/
+# Exclude top-level android and ios folders
+/android
+/ios
 
-# Android
-android/
+# Include android and ios folders inside local modules
+!*/android
+!*/ios
 
 # dependencies
 node_modules/

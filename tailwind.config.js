@@ -12,7 +12,7 @@ module.exports = {
       },
       fontSize:{
         "title" : "2xl"
-      }
+      },
     },
   },
   plugins: [],
