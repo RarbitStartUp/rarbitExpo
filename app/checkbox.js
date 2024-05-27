@@ -159,10 +159,10 @@ export default function Checkbox() {
 
     useEffect(() => {
         if (isBookmarked) {
-          animation.current.play(0, 50); // Play from start to end
+          animation.current.play(0, 100); // Play from start to end
         } else {
-        //   animation.current.play(100, 50); // Play in reverse from end to start
-        setProgress(0); // Set progress to 0 (empty)
+          animation.current.play(100, 0); // Play in reverse from end to start
+        // setProgress(0); // Set progress to 0 (empty)
         }
     }, [isBookmarked]);
 
@@ -370,12 +370,12 @@ export default function Checkbox() {
     return (
         <>
         <GestureHandlerRootView style={{ flex: 1 }}>
-                <LinearGradient
+                {/* <LinearGradient
                     colors={['#F3E7E9', '#b0cfff']}
                     style={{ flex: 1, borderRadius: 25 }}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                >
+                > */}
                     <View
                         style={{
                             paddingTop: insets.top,
@@ -406,10 +406,14 @@ export default function Checkbox() {
                                     style={{ width: 30, height: 30 }}
                                     source={require('../assets/share.json')}
                                     loop={true}
+                                    // colorFilters={[{
+                                    //     keypath: "Outline",
+                                    //     color: isBookmarked ? "#d373d2" : "#de9de0",
+                                    // }]}
                                 />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={toggleBottomSheet}>
-                                <FontAwesome name="file-text-o" size={25} color="#de9de0"/>
+                                <MaterialCommunityIcons name="format-text" size={25} color="#000000"/>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={handleBookMark}>
                                 <LottieView
@@ -418,10 +422,10 @@ export default function Checkbox() {
                                     source={require('../assets/bookmark.json')}
                                     progress={isBookmarked ? 1 : 0 }
                                     loop={false}
-                                    colorFilters={[{
-                                        keypath: "Outline",
-                                        color: isBookmarked ? "#d373d2" : "#de9de0",
-                                    }]}
+                                    // colorFilters={[{
+                                    //     keypath: "Null 1","Bookmark Outline","Bookmark Fill","Circle"
+                                    //     color: isBookmarked ? "#d373d2" : "#de9de0",
+                                    // }]}
                                 />
                             </TouchableOpacity>
                             <FontAwesome6 name="circle-user" size={35} color="#de9de0"/>
@@ -524,11 +528,11 @@ export default function Checkbox() {
                         snapPoints={snapPoints}
                         onChange={handleSheetChange}
                         enablePanDownToClose={true}
-                        // handleIndicatorStyle={{backgroundColor:'#de9de0'}}
-                        handleIndicatorStyle={{display:'none'}}
-                        backgroundStyle={{backgroundColor: 'transparent', borderRadius: 25, opacity: 0.7, overflow: 'hidden'}}
+                        handleIndicatorStyle={{backgroundColor:'#de9de0'}}
+                        // handleIndicatorStyle={{display:'none'}}
+                        backgroundStyle={{backgroundColor: 'white', borderRadius: 25, opacity: 0.5, overflow: 'hidden'}}
                     >
-                        <BlurView intensity={70} tint="light" style={{ flex: 1 }}>
+                        <BlurView intensity={30} tint="light" style={{ flex: 1 }}>
                         <BottomSheetScrollView>
                             <View className="p-10">
                                 <Text className="text-2xl text-purple-600 font-semibold pb-5">Steps :</Text>
@@ -549,7 +553,7 @@ export default function Checkbox() {
                         </View>
                     </BlurView>
                     </BottomSheet>
-                </LinearGradient>
+                {/* </LinearGradient> */}
         </GestureHandlerRootView>
         </>
     );
