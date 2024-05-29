@@ -21,14 +21,16 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MusicButton } from '../components/MusicButton';
 import { SoundButton } from '../components/SoundButton';
-import { Entypo,AntDesign,FontAwesome5,Feather,FontAwesome,FontAwesome6,Ionicons,MaterialIcons, MaterialCommunityIcons} from '@expo/vector-icons';
+import { Entypo,AntDesign,FontAwesome5,Feather,FontAwesome, Foundation,FontAwesome6,Ionicons,MaterialIcons, MaterialCommunityIcons} from '@expo/vector-icons';
 import { GradientText } from '../components/GradientText';
 import { NeuButton } from '../components/neumorphsimButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import  LottieView  from 'lottie-react-native';
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BlurView } from 'expo-blur';
+// import { BlurView } from 'expo-blur';
+import YoutubePlayer from "react-native-youtube-iframe";
+import { Picker } from '@react-native-picker/picker';
 
 export default function Checkbox() {
     // Access the route object to get the passed data
@@ -45,7 +47,7 @@ export default function Checkbox() {
     // ***For Development ( comment out for production - 1 line ):
     const videoId = 'CzC3qngNEcA';
     // const checklist = [{"timestamp": "00:00:00", "objects": {"leeks": true, "knife": true, "cutting board": true, "bowl": true, "water": true, "paper towel": true}, "actions": {"place leeks on cutting board": true, "trim the root end of leeks": true, "remove the dark tops of leeks": true}}, {"timestamp": "00:33:00", "objects": {"leeks": true, "knife": true}, "actions": {"cut leeks into 4 inch sections": true, "slice leeks in half lengthwise": true}}, {"timestamp": "00:39:00", "objects": {"leeks": true, "bowl": true, "water": true}, "actions": {"place leek sections in bowl of water": true, "clean leeks in water": true, "check layers of leeks for hidden dirt": true}}, {"timestamp": "00:55:00", "objects": {"leeks": true, "knife": true, "bowl": true, "water": true, "paper towel": true}, "actions": {"slice leeks": true, "rinse leeks in bowl of water": true, "lift leeks out of bowl": true, "place leeks on paper towel": true, "store leeks in fridge": true}}]
-    const checklist = [{"timestamp": "00:20", "actions": {"Trim the root end": true}}, {"timestamp": "00:25", "actions": {"Remove the dark tops": true}}, {"timestamp": "00:33", "actions": {"Cut the leek into sections": true}}, {"timestamp": "00:37", "actions": {"Slice the leek in half lengthwise": true}}, {"timestamp": "00:39", "actions": {"Clean the leek": true}}, {"timestamp": "00:55", "actions": {"Clean the leek after cutting": true}}, {"timestamp": "00:57", "actions": {"Slice the leek": true}}, {"timestamp": "01:03", "actions": {"Rinse the leek": true}}, {"timestamp": "01:07", "actions": {"Lift the leek": true}}]
+    const checklist = [{"timestamp": "00:00:20", "actions": {"Trim the root end": true}}, {"timestamp": "00:00:25", "actions": {"Remove the dark tops": true}}, {"timestamp": "00:00:33", "actions": {"Cut the leek into sections": true}}, {"timestamp": "00:00:37", "actions": {"Slice the leek in half lengthwise": true}}, {"timestamp": "00:00:39", "actions": {"Clean the leek": true}}, {"timestamp": "00:00:55", "actions": {"Clean the leek after cutting": true}}, {"timestamp": "00:00:57", "actions": {"Slice the leek": true}}, {"timestamp": "00:01:03", "actions": {"Rinse the leek": true}}, {"timestamp": "00:01:07", "actions": {"Lift the leek": true}}]
     
     // log the checklist :
     console.log('checklist in Checkbox.jsx :', checklist);
@@ -62,6 +64,7 @@ export default function Checkbox() {
     const insets = useSafeAreaInsets();
     const isJsonData = true;
     const sheetRef = useRef(null);
+    const playerRef = useRef();
 
     const { socket, isWebSocketOpen } = useWebSocket();
     // console.log('socket:', socket);
@@ -125,6 +128,26 @@ export default function Checkbox() {
     const [filteredChecklist, setFilteredChecklist] = useState(checklist);
     const [modalVisible, setModalVisible] = useState(false);
 
+    function jumpToTimestamp(timestamp){
+        console.log("time stamp button is toggled.");
+        console.log("time stamp :", timestamp );
+        // Convert the timestamp to seconds
+        const [hours, minutes, seconds] = timestamp.split(':');
+        const totalSeconds = parseInt(hours, 10) * 3600 + parseInt(minutes, 10) * 60 + parseInt(seconds, 10);
+        console.log("totalSeconds :",totalSeconds);
+    
+        // Function to seek to a specific time in the video
+        const seekToTime = (totalSeconds) => {
+            // Check if playerRef is available
+            if (playerRef.current) {
+                // Seek to the specified time in seconds
+                playerRef.current.seekTo(totalSeconds, true); // true allows seeking ahead
+            }
+        };
+
+        seekToTime(totalSeconds);
+    }
+
     // Function to filter checklist based on search query
     const handleSearch = (query) => {
         setSearchQuery(query);
@@ -145,14 +168,51 @@ export default function Checkbox() {
         }
     };
 
-     // Function to handle search and close modal
-     const handleSearchAndCloseModal = (query) => {
-        handleSearch(query);
-        setModalVisible(false);
+    const clearSearch = () => {
+        setSearchQuery('');
+        setFilteredChecklist(checklist);
     };
 
-    const [progress, setProgress] = useState(50);
+    const [searchQueryData, setSearchQueryData] = useState('');
+    const [filteredData, setFilteredData] = useState(jsonData);
 
+     // Set the initial data with index
+     useEffect(() => {
+        const dataWithIndex = jsonData.map((item, index) => ({
+            ...item,
+            originalIndex: index + 1 // Store the original index
+        }));
+        setFilteredData(dataWithIndex);
+    }, [jsonData]);
+
+    const handleSearchData = (query) => {
+        setSearchQueryData(query);
+        if (query === '') {
+            setFilteredData(jsonData.map((item, index) => ({
+                ...item,
+                originalIndex: index + 1
+            })));
+        } else {
+            const filtered = jsonData
+                .map((item, index) => ({
+                    ...item,
+                    originalIndex: index + 1 // Preserve the original index
+                }))
+                .filter(item => {
+                    const actions = Object.keys(item.actions).join(' ').toLowerCase();
+                    return actions.includes(query.toLowerCase()) || item.timestamp.includes(query);
+                });
+            setFilteredData(filtered);
+        }
+    };
+
+    const clearSearchData = () => {
+        setSearchQueryData('');
+        setFilteredData(jsonData.map((item, index) => ({
+            ...item,
+            originalIndex: index + 1
+        })));
+    };
     const handleBookMark = () => {
         setIsBookmarked(!isBookmarked);
       };
@@ -167,7 +227,7 @@ export default function Checkbox() {
     }, [isBookmarked]);
 
     const [visibleBottomSheet, setVisibleBottomSheet] = useState(false);
-    const snapPoints = useMemo(() => ["20%","50%","86%"], []);
+    const snapPoints = useMemo(() => ["40%","45%","70%","90%"], []);
   
     // callbacks
     const handleSheetChange = useCallback((index) => {
@@ -181,176 +241,145 @@ export default function Checkbox() {
     }, []);
 
     const [snapState, setSnapState] = useState(1); // Initial state
-  
-    // const toggleSnapPoints = () => {
-    //     const newState = snapState === (2 || !0) ? 1 : 2; // Toggle between 0 and 1
-    //     setSnapState(newState);
-    //     handleSnapPress(newState);
-    // };
 
     const toggleBottomSheet = () => {
-        if (snapState === 2) {
+        if (snapState === 3) {
           // If BottomSheet is fully open, close it
           sheetRef.current?.close();
           setSnapState(-1); // Set state to -1 (closed)
         } else {
           // If BottomSheet is not fully open, open it
-          setSnapState(2);
-          sheetRef.current?.snapToIndex(2);
+          setSnapState(3);
+          sheetRef.current?.snapToIndex(3);
         }
-      };      
+      };       
 
-    // useEffect(() => {
-    //     let frame = isBookmarked ? 0 : 100;
-    
-    //     const animate = () => {
-    //       if (isBookmarked && frame <= 100) {
-    //         setProgress(frame / 100);
-    //         frame++;
-    //       } else if (!isBookmarked && frame >= 0) {
-    //         setProgress(frame / 100);
-    //         frame--;
-    //       } else {
-    //         return;
-    //       }
-    //       requestAnimationFrame(animate);
-    //     };
-    
-    //     animate();
-    //   }, [isBookmarked]);
+      const toggleSnapPoints = () => {
+        const newState = snapState === 2 ? 1 : 2; // Toggle between 0 and 1
+        setSnapState(newState);
+        handleSnapPress(newState);
+    };
+      
+    const [searchQueryBottomSheet, setSearchQueryBottomSheet] = useState('');
+    const [filteredDataBottomSheet, setFilteredDataBottomSheet] = useState([]);
+    const [stepFilter, setStepFilter] = useState('');
+    const [editActionText, setEditActionText] = useState('');
+    const [editItem, setEditItem] = useState(null);
 
-    const removeNewItem = (listId, item, stepIndex) => {
-        try {
-            console.log('Remove button clicked');
-            console.log('listId:', listId);
-            console.log('item:', item);
-            console.log('stepIndex:', stepIndex);
-
-            // Update the state to remove the item from objectItems and actionItems
-            if (listId === 'objectList') {
-                setObjectItems(prevObjectItems =>
-                    prevObjectItems.filter(obj => obj !== item)
-                );
-            } else if (listId === 'actionList') {
-                setActionItems(prevActionItems =>
-                    prevActionItems.filter(act => act !== item)
-                );
-            } else {
-                throw new Error(`Invalid listId: ${listId}`);
-            }
-
-            // Update the jsonData state to reflect the removal
-            setJsonData(prevData => {
-                const newData = [...prevData];
-                const updatedStepData = { ...newData[stepIndex] };
-
-                // Determine the type based on the listId
-                const type = listId === 'objectList' ? 'objects' : 'actions';
-                // Remove the item from the checklist
-                delete updatedStepData[type][item];
-
-                newData[stepIndex] = updatedStepData;
-                return newData;
-            });
-        } catch (error) {
-            console.error('Error removing item:', error);
-            Toast.show('Error removing item. Please try again.');
+     const handleSearchDataBottomSheet = (query) => {
+        setSearchQueryBottomSheet(query);
+        if (query === '') {
+            setFilteredDataBottomSheet(jsonData.map((item, index) => ({
+                ...item,
+                originalIndex: index + 1
+            })));
+        } else {
+            const filtered = jsonData
+                .map((item, index) => ({
+                    ...item,
+                    originalIndex: index + 1 // Preserve the original index
+                }))
+                .filter(item => {
+                    const actions = Object.keys(item.actions).join(' ').toLowerCase();
+                    return actions.includes(query.toLowerCase()) || item.timestamp.includes(query);
+                });
+            setFilteredDataBottomSheet(filtered);
         }
     };
 
-    // const resetChecklist = () => {
-    //     console.log('Reset button pressed');
-    //     try {
-    //         console.log('jsonData before reset:', jsonData);
-    //         // console.log('initialJsonData before reset:', initialJsonData);
-    //         // Reset jsonData to its original state
-    //         setJsonData(checklist);
-    //         console.log('jsonData after reset:', jsonData);
-    //         // console.log('initialJsonData after reset:', initialJsonData);
-
-    //         // Reset objectItems and actionItems
-    //         // let allObjects = [];
-    //         let allActions = [];
-
-    //         checklist.forEach(stepData => {
-    //             // const objects = Object.keys(stepData.objects);
-    //             const actions = Object.keys(stepData.actions);
-    //             // allObjects = [...allObjects, ...objects];
-    //             allActions = [...allActions, ...actions];
-    //         });
-
-    //         // setObjectItems(allObjects);
-    //         // console.log('objectItems after reset:', allObjects);
-    //         setActionItems(allActions);
-    //         console.log('actionItems after reset:', allActions);
-    //         console.log('jsonData after reset at the bottom:', jsonData);
-    //     } catch (error) {
-    //         console.error('Error resetting checklist:', error);
-    //         Toast.show('Error resetting checklist. Please try again.');
-    //     }
-    // };
+    const clearSearchDataBottomSheet = () => {
+        setSearchQueryBottomSheet('');
+        setFilteredDataBottomSheet(jsonData.map((item, index) => ({
+            ...item,
+            originalIndex: index + 1
+        })));
+    };
 
     const resetChecklist = () => {
-        // const resetChecklist = filteredChecklist.map(item => ({
-        //     ...item,
-        //     actions: {}
-        // }));
-        setFilteredChecklist(checklist);
         setJsonData(checklist);
-        setActionInputValues(Array(filteredChecklist.length).fill(''));
+        const dataWithIndex = checklist.map((item, index) => ({
+            ...item,
+            originalIndex: index + 1
+        }));
+        setFilteredData(dataWithIndex);
+        setFilteredDataBottomSheet(dataWithIndex);
+        setSearchQueryData('');
+        setSearchQueryBottomSheet('');
+        setStepFilter('');
     };
 
-    // Function to add an item to a specific step
-    const addItemToStep = (listId, inputId, stepIndex) => {
-        try {
-            const newItem = listId === 'objectList' ? objectInputValues[stepIndex] : actionInputValues[stepIndex];
-
-            if (!newItem) {
-                Toast.show('Please enter a valid item.');
-                return;
-            }
-
-            setActionInputValues(prevValues => {
-                const newValues = [...prevValues];
-                newValues[stepIndex] = ''; // Clear the input value for the current step
-                return newValues;
-            });
-
-            // Clear the input value after adding the new item
-            // if (listId === 'objectList') {
-            //     setObjectInputValues(prevValues => {
-            //         const newValues = [...prevValues];
-            //         newValues[stepIndex] = ''; // Clear the input value for the current step
-            //         return newValues;
-            //     });
-            // } else if (listId === 'actionList') {
-            //     setActionInputValues(prevValues => {
-            //         const newValues = [...prevValues];
-            //         newValues[stepIndex] = ''; // Clear the input value for the current step
-            //         return newValues;
-            //     });
-            // }
-
-            setJsonData(prevData => {
-                const newData = [...prevData];
-                const updatedStepData = { ...newData[stepIndex] };
-
-                // Add the new item to the appropriate checklist (objects or actions)
-                if (inputId.includes('newObjectInput')) {
-                    updatedStepData.objects[newItem] = true;
-                } else if (inputId.includes('newActionInput')) {
-                    updatedStepData.actions[newItem] = true;
-                }
-
-                // Update the step data with the modified checklist
-                newData[stepIndex] = updatedStepData;
-                return newData;
-            });
-        } catch (error) {
-            console.error('Error adding new items:', error);
-            Toast.show('Error adding new items. Please try again.');
+    const handleStepFilter = (step) => {
+        if (step === '') {
+            setFilteredDataBottomSheet(jsonData.map((item, index) => ({
+                ...item,
+                originalIndex: index + 1
+            })));
+        } else {
+            const stepIndex = parseInt(step, 10) - 1;
+            setFilteredDataBottomSheet([{
+                ...jsonData[stepIndex],
+                originalIndex: stepIndex + 1
+            }]);
         }
     };
+
+    const handleEditAction = (item) => {
+        setEditActionText(Object.keys(item.actions)[0]);
+        setEditItem(item);
+        setModalVisible(true);
+    };
+
+    const saveEditAction = () => {
+        const updatedData = jsonData.map(data => {
+            if (data.timestamp === editItem.timestamp) {
+                return {
+                    ...data,
+                    actions: { [editActionText]: true }
+                };
+            }
+            return data;
+        });
+        setJsonData(updatedData);
+        const dataWithIndex = updatedData.map((item, index) => ({
+            ...item,
+            originalIndex: index + 1
+        }));
+        setFilteredData(dataWithIndex);
+        setFilteredDataBottomSheet(dataWithIndex);
+        setModalVisible(false);
+    };
+
+    const removeAction = (timestamp) => {
+        const updatedData = jsonData.filter(item => item.timestamp !== timestamp);
+        setJsonData(updatedData);
+        const dataWithIndex = updatedData.map((item, index) => ({
+            ...item,
+            originalIndex: index + 1
+        }));
+        setFilteredData(dataWithIndex);
+        setFilteredDataBottomSheet(dataWithIndex);
+    };
+
+    const renderItem = ({ item }) => (
+        <View key={item.originalIndex}>
+            <TouchableOpacity onPress={() => jumpToTimestamp(item.timestamp)}>
+                <Text className="text-md text-gray-400">{item.timestamp}</Text>
+            </TouchableOpacity>
+            {Object.keys(item.actions).map((action, idx) => (
+                <View key={idx} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text className="text-lg font-bold text-purple-400">
+                        {item.originalIndex}.{idx + 1} {action}
+                    </Text>
+                    <TouchableOpacity onPress={() => handleEditAction(item)}>
+                        <Ionicons name="pencil" size={20} color="#d2d2d2" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => removeAction(item.timestamp)}>
+                        <Ionicons name="remove-circle" size={20} color="#d2d2d2" />
+                    </TouchableOpacity>
+                </View>
+            ))}
+        </View>
+    );
 
     // Function to navigate to CameraScreen with jsonData
     const navigateToCameraScreen = () => {
@@ -382,38 +411,51 @@ export default function Checkbox() {
                             paddingRight: insets.right,
                         }}
                     />
-                    <View className="flex-row justify-between items-center w-full pb-5 px-7">
+                    <View className="flex-row justify-between items-center w-full pb-2 px-7">
                         <View className="flex-row justify-start items-center space-x-2 pr-3 flex-1">
-                            <Ionicons name="search" size={25} color="#de9de0" />
+                            <Ionicons name="search" size={25} color="#d2d2d2" />
                             <TextInput
                                 style={{ 
                                     borderWidth: 0,
                                     borderBottomWidth: 1,
-                                    borderBottomColor: "#de9de0",
+                                    borderBottomColor: "#d2d2d2",
+                                    // borderBottomColor: "#de9de0",
                                     padding: 10,
                                     fontSize: 16,
                                     flex: 1 // Allow the TextInput to take available space
                                 }}
                                 placeholder="Search actions..."
-                                value={searchQuery}
-                                onChangeText={handleSearch}
+                                value={searchQueryData}
+                                onChangeText={handleSearchData}
                             />
+                            { searchQueryData ? (
+                                <TouchableOpacity onPress={clearSearchData}>
+                                    <Ionicons name="close-circle" size={25} color="#d2d2d2" />
+                                </TouchableOpacity>
+                            ) : null}
                         </View>
-                        <View className="flex-row justify-end items-center space-x-2">
+                        <View className="flex-row justify-end items-center space-x-0">
                             <TouchableOpacity>
                                 <LottieView
                                     autoPlay
-                                    style={{ width: 30, height: 30 }}
+                                    style={{ width: 25, height: 25 }}
                                     source={require('../assets/share.json')}
                                     loop={true}
-                                    // colorFilters={[{
-                                    //     keypath: "Outline",
-                                    //     color: isBookmarked ? "#d373d2" : "#de9de0",
-                                    // }]}
+                                    colorFilters={[
+                                        {
+                                          keypath: 'Layer 1',
+                                          color: '#d2d2d2',
+                                        },
+                                        {
+                                          keypath: 'Layer 2',
+                                          color: '#d2d2d2',
+                                        },
+                                        {
+                                          keypath: 'Layer 3',
+                                          color: '#d2d2d2',
+                                        },
+                                      ]}
                                 />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={toggleBottomSheet}>
-                                <MaterialCommunityIcons name="format-text" size={25} color="#000000"/>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={handleBookMark}>
                                 <LottieView
@@ -428,98 +470,73 @@ export default function Checkbox() {
                                     // }]}
                                 />
                             </TouchableOpacity>
-                            <FontAwesome6 name="circle-user" size={35} color="#de9de0"/>
+                            {/* <TouchableOpacity className="pr-2" onPress={toggleBottomSheet}>
+                                <AntDesign name="youtube" size={25} color="#ff0000"/>
+                            </TouchableOpacity> */}
+                            <View className="pr-2">
+                               {/* <Foundation name="dollar" size={30} color="#d2d2d2"/> */}
+                               <TouchableOpacity onPress={handleBookMark}>
+                               <LottieView
+                                    autoPlay
+                                    style={{ width: 35, height: 35 }}
+                                    source={require('../assets/dollar.json')}
+                                    loop={true}
+                                    speed={0.4}
+                                    // colorFilters={[
+                                    //     {
+                                    //       keypath: 'Layer 1',
+                                    //       color: '#d2d2d2',
+                                    //     },
+                                    //     {
+                                    //       keypath: 'Layer 2',
+                                    //       color: '#d2d2d2',
+                                    //     },
+                                    //     {
+                                    //       keypath: 'Layer 3',
+                                    //       color: '#d2d2d2',
+                                    //     },
+                                    //   ]}
+                                />
+                                
+                            </TouchableOpacity>
+                            </View>
+                            {/* <MaterialIcons name="settings-suggest" size={30} color="#d2d2d2"/> */}
+                            <FontAwesome6 name="circle-user" size={30} color="#d2d2d2"/>
                         </View>
                     </View>
-                    <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                // keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0} // Adjust this value as needed
-            >
-                    <View className="flex-1">
-                        <FlatList
-                            data={filteredChecklist}
-                            keyExtractor={(item, index) => index.toString()}
-                            renderItem={({ item, index }) => (
-                                <View key={index + 1}>
-                                    <View className="flex flex-col w-full space-y-5 px-8 justify-between items-start">
-                                        <View className="flex flex-row w-full justify-between items-center">
-                                            <View className="flex-start">
-                                                <Text className="text-2xl font-bold text-purple-400">Step {index + 1} :</Text>
-                                            </View>
-                                            <View className="flex-end">
-                                                <View className="flex flex-row w-full space-x-2 items-center">
-                                                    <Text className="text-lg font-semibold text-gray-400">{item.timestamp}</Text>
-                                                    <MaterialIcons name="access-time" size={20} color="#939393" />
-                                                </View>
-                                            </View>
-                                        </View>
-                                        <View className="flex flex-col space-y-5 mb-1">
-                                            <View className="flex flex-col justify-between space-y-5 mb-10 bg-gray-100/60 rounded-xl drop-shadow-xl p-5">
-                                                {Object.keys(item.actions).map((actionKey, actIndex) => (
-                                                    <View key={actIndex} className="flex-row justify-between w-full items-center space-x-3">
-                                                        <View className="flex-1 flex-row flex-start">
-                                                            <Text className="text-lg font-semibold">
-                                                                {actIndex + 1}.
-                                                            </Text>
-                                                            <Text style={{ flex: 1, paddingLeft: 10 }} className="text-lg font-semibold">
-                                                                {actionKey}
-                                                            </Text>
-                                                        </View>
-                                                        <TouchableOpacity
-                                                            onPress={() => removeNewItem('actionList', actionKey, index)}
-                                                        >
-                                                            <Ionicons name="remove" size={20} color="#939393" />
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                ))}
-                                                <View className="flex flex-row justify-between w-full items-center">
-                                                    <View className="flex-1"> 
-                                                        <TextInput
-                                                            value={actionInputValues[index]}
-                                                            onChangeText={text => {
-                                                                // Capitalize the first letter and convert the rest to lowercase
-                                                                const capitalizedText = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-                                                                // const lowerCaseText = text.toLowerCase(); // Convert text to lowercase
-                                                                const newValues = [...actionInputValues];
-                                                                // newValues[index] = lowerCaseText;
-                                                                newValues[index] = capitalizedText;
-                                                                setActionInputValues(newValues);
-                                                            }}
-                                                            className="pl-5 text-lg mr-10"
-                                                            placeholder={`Add new action for Step ${index + 1}`}
-                                                            multiline={true} // Enable multiline support
-                                                            textAlignVertical="top" // Align text to the top for multiline input
-                                                        />
-                                                    </View>
-                                                    <TouchableOpacity
-                                                        onPress={() =>
-                                                            addItemToStep(
-                                                                'actionList',
-                                                                `newActionInput${index}`,
-                                                                index // Pass index of the step
-                                                            )
-                                                        }
-                                                    >
-                                                        <FontAwesome6 name="add" size={20} color="#939393" />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            </View>
-                                        </View>
-                                    </View>
-                                </View>
-                            )}
-                            // ListFooterComponent={<View className="pb-5" />} // Add some padding at the bottom
-                            // contentContainerStyle={{ paddingBottom: 10 }} // Add some padding at the bottom
-                        />
-                    </View>
-                </KeyboardAvoidingView>
-                    <View className="px-7 py-5 w-full bg-gray-100/80 flex-row justify-between">
-                        <NeuButton height={50} width={150} onPress={resetChecklist}>
-                            <Text className="text-gray-400 text-lg font-semi-bold">Reset</Text>
+                    
+                    <Text className="text-gray-400 px-10 pb-4">Prior to proceeding with detection, kindly review and confirm the provided instructions below.</Text>
+                    <FlatList
+                        data={filteredData}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item, index }) => (
+                            <View className="px-10" key={item.originalIndex}>
+                                <TouchableOpacity onPress={() => jumpToTimestamp(item.timestamp)}>
+                                    <Text className="text-md text-gray-400">{item.timestamp}</Text>
+                                </TouchableOpacity>
+                                {Object.keys(item.actions).map((action, idx) => (
+                                    <Text className="text-lg font-bold text-purple-400" key={idx}>
+                                        {item.originalIndex}. {action}
+                                    </Text>
+                                ))}
+                            </View>)}
+                    />
+                {videoId && 
+                    <YoutubePlayer
+                        ref={playerRef}
+                        height={220}
+                        videoId={videoId}
+                    />
+                }
+                <Text className="text-xs text-gray-400 pt-2 px-5">Tap on the timestamp to navigate to that section of the video. Tap on the title of the video to open it in the Youtube App.</Text>
+
+                    <View className="px-7 pt-1 pb-5 w-full bg-gray-100/80 flex-row justify-between">
+                       
+                        <NeuButton height={50} width={150} onPress={toggleBottomSheet}>
+                            <Text className="text-gray-400 text-lg font-semibold">Edit</Text>
                         </NeuButton>
                         <NeuButton height={50} width={150} onPress={navigateToCameraScreen}>
-                            <Text className="text-gray-400 text-lg font-semi-bold">Submit</Text>
+                            <Text className="text-gray-400 text-lg font-semibold">Submit</Text>
                         </NeuButton>
                     </View>
                     <BottomSheet
@@ -530,29 +547,104 @@ export default function Checkbox() {
                         enablePanDownToClose={true}
                         handleIndicatorStyle={{backgroundColor:'#de9de0'}}
                         // handleIndicatorStyle={{display:'none'}}
-                        backgroundStyle={{backgroundColor: 'white', borderRadius: 25, opacity: 0.5, overflow: 'hidden'}}
+                        // backgroundStyle={{backgroundColor: 'transparent', borderRadius: 25 }}
+                        backgroundStyle={{backgroundColor: '#ffffff', borderRadius: 25, opacity: 1, overflow:'hidden'}}
                     >
-                        <BlurView intensity={30} tint="light" style={{ flex: 1 }}>
-                        <BottomSheetScrollView>
-                            <View className="p-10">
-                                <Text className="text-2xl text-purple-600 font-semibold pb-5">Steps :</Text>
-                                {jsonData.map((item, index) => (
-                                    <View key={index}>
-                                        <Text className="text-gray-600 font-semibold">{item.timestamp}</Text>
-                                        {Object.keys(item.actions).map((action, idx) => (
-                                            <Text className="text-xl font-semibold text-purple-600" key={idx}>
-                                                {index * Object.keys(item.actions).length + idx + 1}. {action}
-                                            </Text>
-                                        ))}
-                                    </View>
-                                ))}
-                            </View>
-                        </BottomSheetScrollView>
-                        <View className="justify-center items-center p-10">
-                            <Text className="text-gray-400">Swipe All Down to Dismiss</Text>
+                        {/* <BlurView intensity={90} tint="light" style={{ flex: 1, position:'absolute', width:'100%', height:'100%' }}> */}
+                        {/* <View className="pb-10"> */}
+                        <View className="flex-1">
+                        <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        // keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0} // Adjust this value as needed
+                        >
+                         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View style={{ width: '90%', backgroundColor: 'white', borderRadius: 10, padding: 20 }}>
+                        <View className="flex-row justify-start items-center space-x-2">
+                            <Ionicons name="search" size={25} color="#d2d2d2" />
+                            <TextInput
+                                style={{ 
+                                    borderWidth: 0,
+                                    borderBottomWidth: 1,
+                                    borderBottomColor: "#d2d2d2",
+                                    padding: 10,
+                                    fontSize: 16,
+                                    flex: 1
+                                }}
+                                placeholder="Search actions..."
+                                value={searchQueryBottomSheet}
+                                onChangeText={handleSearchDataBottomSheet}
+                            />
+                            { searchQueryBottomSheet ? (
+                                <TouchableOpacity onPress={clearSearchDataBottomSheet}>
+                                    <Ionicons name="close-circle" size={25} color="#d2d2d2" />
+                                </TouchableOpacity>
+                            ) : null}
                         </View>
-                    </BlurView>
+
+                        <View style={{ marginVertical: 10 }}>
+                            <Text>Step:</Text>
+                            <Picker
+                                selectedValue={stepFilter}
+                                onValueChange={(itemValue) => handleStepFilter(itemValue)}
+                            >
+                                <Picker.Item label="Select step" value="" />
+                                {jsonData.map((item, index) => (
+                                    <Picker.Item key={index} label={`${index + 1}`} value={`${index + 1}`} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <FlatList
+                            data={filteredDataBottomSheet}
+                            keyExtractor={(item) => item.originalIndex.toString()}
+                            renderItem={renderItem}
+                        />
+
+                        <View style={{ marginTop: 20 }}>
+                            <Button title="Reset" onPress={resetChecklist} />
+                            <Button title="Close" onPress={() => setModalVisible(false)} />
+                        </View>
+                    </View>
+                </View>
+
+         
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View style={{ width: '90%', backgroundColor: 'white', borderRadius: 10, padding: 20 }}>
+                        <TextInput
+                            style={{ 
+                                borderWidth: 1,
+                                borderColor: "#d2d2d2",
+                                padding: 10,
+                                fontSize: 16,
+                                flex: 1
+                            }}
+                            value={editActionText}
+                            onChangeText={setEditActionText}
+                        />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                            <Button title="Save" onPress={saveEditAction} />
+                            <Button title="Cancel" onPress={() => setEditItem(null)} />
+                        </View>
+                    </View>
+                </View>
+                       
+                        </KeyboardAvoidingView>
+                        <View className="px-10">
+                            <NeuButton height={50} width='100%' onPress={resetChecklist}>
+                                <Text className="text-gray-400 text-lg font-semi-bold">Reset</Text>
+                            </NeuButton>
+                        </View>
+                    </View>
+                        {/* </BottomSheetScrollView> */}
+                        
+                        <View className="justify-center items-center pb-10">
+                            <Text className="text-gray-300">Swipe All Down to Dismiss</Text>
+                        </View>
+                    {/* </View> */}
+                    {/* </BlurView> */}
                     </BottomSheet>
+            
                 {/* </LinearGradient> */}
         </GestureHandlerRootView>
         </>

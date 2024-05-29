@@ -1,0 +1,208 @@
+  const removeNewItem = (listId, item, stepIndex) => {
+        try {
+            console.log('Remove button clicked');
+            console.log('listId:', listId);
+            console.log('item:', item);
+            console.log('stepIndex:', stepIndex);
+
+            // Update the state to remove the item from objectItems and actionItems
+            if (listId === 'objectList') {
+                setObjectItems(prevObjectItems =>
+                    prevObjectItems.filter(obj => obj !== item)
+                );
+            } else if (listId === 'actionList') {
+                setActionItems(prevActionItems =>
+                    prevActionItems.filter(act => act !== item)
+                );
+            } else {
+                throw new Error(`Invalid listId: ${listId}`);
+            }
+
+            // Update the jsonData state to reflect the removal
+            setJsonData(prevData => {
+                const newData = [...prevData];
+                const updatedStepData = { ...newData[stepIndex] };
+
+                // Determine the type based on the listId
+                const type = listId === 'objectList' ? 'objects' : 'actions';
+                // Remove the item from the checklist
+                delete updatedStepData[type][item];
+
+                newData[stepIndex] = updatedStepData;
+                return newData;
+            });
+        } catch (error) {
+            console.error('Error removing item:', error);
+            Toast.show('Error removing item. Please try again.');
+        }
+    };
+
+    // const resetChecklist = () => {
+    //     console.log('Reset button pressed');
+    //     try {
+    //         console.log('jsonData before reset:', jsonData);
+    //         // console.log('initialJsonData before reset:', initialJsonData);
+    //         // Reset jsonData to its original state
+    //         setJsonData(checklist);
+    //         console.log('jsonData after reset:', jsonData);
+    //         // console.log('initialJsonData after reset:', initialJsonData);
+
+    //         // Reset objectItems and actionItems
+    //         // let allObjects = [];
+    //         let allActions = [];
+
+    //         checklist.forEach(stepData => {
+    //             // const objects = Object.keys(stepData.objects);
+    //             const actions = Object.keys(stepData.actions);
+    //             // allObjects = [...allObjects, ...objects];
+    //             allActions = [...allActions, ...actions];
+    //         });
+
+    //         // setObjectItems(allObjects);
+    //         // console.log('objectItems after reset:', allObjects);
+    //         setActionItems(allActions);
+    //         console.log('actionItems after reset:', allActions);
+    //         console.log('jsonData after reset at the bottom:', jsonData);
+    //     } catch (error) {
+    //         console.error('Error resetting checklist:', error);
+    //         Toast.show('Error resetting checklist. Please try again.');
+    //     }
+    // };
+
+    const resetChecklist = () => {
+        // const resetChecklist = filteredChecklist.map(item => ({
+        //     ...item,
+        //     actions: {}
+        // }));
+        setFilteredChecklist(checklist);
+        setJsonData(checklist);
+        setActionInputValues(Array(filteredChecklist.length).fill(''));
+    };
+
+    // Function to add an item to a specific step
+    const addItemToStep = (listId, inputId, stepIndex) => {
+        try {
+            const newItem = listId === 'objectList' ? objectInputValues[stepIndex] : actionInputValues[stepIndex];
+
+            if (!newItem) {
+                Toast.show('Please enter a valid item.');
+                return;
+            }
+
+            setActionInputValues(prevValues => {
+                const newValues = [...prevValues];
+                newValues[stepIndex] = ''; // Clear the input value for the current step
+                return newValues;
+            });
+
+            // Clear the input value after adding the new item
+            // if (listId === 'objectList') {
+            //     setObjectInputValues(prevValues => {
+            //         const newValues = [...prevValues];
+            //         newValues[stepIndex] = ''; // Clear the input value for the current step
+            //         return newValues;
+            //     });
+            // } else if (listId === 'actionList') {
+            //     setActionInputValues(prevValues => {
+            //         const newValues = [...prevValues];
+            //         newValues[stepIndex] = ''; // Clear the input value for the current step
+            //         return newValues;
+            //     });
+            // }
+
+            setJsonData(prevData => {
+                const newData = [...prevData];
+                const updatedStepData = { ...newData[stepIndex] };
+
+                // Add the new item to the appropriate checklist (objects or actions)
+                if (inputId.includes('newObjectInput')) {
+                    updatedStepData.objects[newItem] = true;
+                } else if (inputId.includes('newActionInput')) {
+                    updatedStepData.actions[newItem] = true;
+                }
+
+                // Update the step data with the modified checklist
+                newData[stepIndex] = updatedStepData;
+                return newData;
+            });
+        } catch (error) {
+            console.error('Error adding new items:', error);
+            Toast.show('Error adding new items. Please try again.');
+        }
+    };
+
+<FlatList
+                            data={filteredChecklist}
+                            keyExtractor={(item, index) => index.toString()}
+                            renderItem={({ item, index }) => (
+                                <View key={index + 1}>
+                                    <View className="flex flex-col w-full space-y-0 px-8 justify-between items-start">
+                                        <View className="flex flex-row w-full justify-between items-center">
+                                            <View className="flex-start">
+                                                <Text className="text-xl font-semibold text-purple-400">Step {index + 1} :</Text>
+                                            </View>
+                                            <View className="flex-end">
+                                                <View className="flex flex-row w-full space-x-2 items-center">
+                                                    <Text className="text-lg text-gray-400">{item.timestamp}</Text>
+                                                    <MaterialIcons name="access-time" size={20} color="#939393" />
+                                                </View>
+                                            </View>
+                                        </View>
+                                        <View className="flex flex-col space-y-5 mb-1">
+                                            <View className="flex flex-col justify-between space-y-5 mb-10 bg-gray-100/60 rounded-xl drop-shadow-xl p-5">
+                                                {Object.keys(item.actions).map((actionKey, actIndex) => (
+                                                    <View key={actIndex} className="flex-row justify-between w-full items-center space-x-3">
+                                                        <View className="flex-1 flex-row flex-start">
+                                                            <Text className="text-lg font-semibold">
+                                                                {actIndex + 1}.
+                                                            </Text>
+                                                            <Text style={{ flex: 1, paddingLeft: 10 }} className="text-lg font-semibold">
+                                                                {actionKey}
+                                                            </Text>
+                                                        </View>
+                                                        <TouchableOpacity
+                                                            onPress={() => removeNewItem('actionList', actionKey, index)}
+                                                        >
+                                                            <Ionicons name="remove" size={20} color="#939393" />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                ))}
+                                                <View className="flex flex-row justify-between w-full items-center">
+                                                    <View className="flex-1"> 
+                                                        <TextInput
+                                                            value={actionInputValues[index]}
+                                                            onChangeText={text => {
+                                                                // Capitalize the first letter and convert the rest to lowercase
+                                                                const capitalizedText = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+                                                                // const lowerCaseText = text.toLowerCase(); // Convert text to lowercase
+                                                                const newValues = [...actionInputValues];
+                                                                // newValues[index] = lowerCaseText;
+                                                                newValues[index] = capitalizedText;
+                                                                setActionInputValues(newValues);
+                                                            }}
+                                                            className="pl-5 text-lg mr-10"
+                                                            placeholder={`Add new action for Step ${index + 1}`}
+                                                            multiline={true} // Enable multiline support
+                                                            textAlignVertical="top" // Align text to the top for multiline input
+                                                        />
+                                                    </View>
+                                                    <TouchableOpacity
+                                                        onPress={() =>
+                                                            addItemToStep(
+                                                                'actionList',
+                                                                `newActionInput${index}`,
+                                                                index // Pass index of the step
+                                                            )
+                                                        }
+                                                    >
+                                                        <FontAwesome6 name="add" size={20} color="#939393" />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                            )}
+                            // ListFooterComponent={<View className="pb-5" />} // Add some padding at the bottom
+                            // contentContainerStyle={{ paddingBottom: 10 }} // Add some padding at the bottom
+                        />

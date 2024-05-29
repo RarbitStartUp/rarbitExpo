@@ -68,7 +68,9 @@
     "tailwind-variants": "^0.2.1",
     "tw-neumorphism": "^0.2.0",
     "typescript": "~5.3.3",
-    "vision-camera-resize-plugin": "^2.1.1"
+    "vision-camera-resize-plugin": "^2.1.1",
+    "@react-native-picker/picker": "2.7.5",
+    "expo-build-properties": "~0.12.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

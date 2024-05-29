@@ -9,7 +9,7 @@ import YoutubePlayer from "react-native-youtube-iframe";
 export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
 
     console.log("videoId in DisplayCheckedList:", videoId);
-    console.log("fullChecklistString in DisplayCheckedList:",fullChecklistString);
+    console.log("fullCheckxelistString in DisplayCheckedList:",fullChecklistString);
     console.log("jsonData in DisplayCheckedList:",jsonData);
 
     const [currentStepIndex, setCurrentStepIndex] = useState(0); 
