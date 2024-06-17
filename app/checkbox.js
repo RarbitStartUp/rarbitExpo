@@ -30,7 +30,7 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 // import { BlurView } from 'expo-blur';
 import YoutubePlayer from "react-native-youtube-iframe";
-import { Picker } from '@react-native-picker/picker';
+// import { Picker } from '@react-native-picker/picker';
 
 export default function Checkbox() {
     // Access the route object to get the passed data
@@ -582,7 +582,7 @@ export default function Checkbox() {
                             ) : null}
                         </View>
 
-                        <View style={{ marginVertical: 10 }}>
+                        {/* <View style={{ marginVertical: 10 }}>
                             <Text>Step:</Text>
                             <Picker
                                 selectedValue={stepFilter}
@@ -593,7 +593,7 @@ export default function Checkbox() {
                                     <Picker.Item key={index} label={`${index + 1}`} value={`${index + 1}`} />
                                 ))}
                             </Picker>
-                        </View>
+                        </View> */}
 
                         <FlatList
                             data={filteredDataBottomSheet}

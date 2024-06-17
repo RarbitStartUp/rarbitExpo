@@ -5,6 +5,7 @@ import { Animated, Button, View, Text, TouchableOpacity, Linking, Pressable, Sty
 import { useNavigation, useRouter, useLocalSearchParams } from 'expo-router';
 import {
     Camera,
+    runAtTargetFps,
     useCameraPermission,
     useMicrophonePermission,
     useCameraDevice,
@@ -71,7 +72,7 @@ export default function CameraScreen() {
     //   const route = useRoute();
 
     const {socket, isWebSocketOpen} = useWebSocket();
-    console.log("isWebSocketOpen:", isWebSocketOpen);
+    console.log("isWebSocketOpen in cameraScreen:", isWebSocketOpen);
     // console.log("WebSocket instance:", socket);
 
     const isFocused = useIsFocused()
@@ -430,10 +431,6 @@ export default function CameraScreen() {
     useEffect(() => {
         if (!socket) return;
 
-        // socket.on('connect', () => {
-        //     console.log('WebSocket connection opened successfully in cameraScreen');
-        // });
-
         socket.on('fullChecklistString', (fullChecklistString) => {
             try {
                 console.log(
@@ -474,121 +471,57 @@ export default function CameraScreen() {
         }
     },);
   
-    // Define frame processing function using useFrameProcessor hook
+    // 1fps example
+    // const frameProcessor = useFrameProcessor((frame) => {
+    //     'worklet'
+    //     // console.log('New Frame')
+    //     // this will log at the speed of 60fps
+    //     runAtTargetFps(1, () => {
+    //       'worklet'
+    //     //   const faces = detectFaces(frame)
+    //     //   console.log(`Detected a new face: ${faces[0]}`)
+    //       console.log("running at 1 fps")
+    //     })
+    //   })
+
+   // Define frame processing function using useFrameProcessor hook
     const frameProcessor = useFrameProcessor((frame) => {
-        'worklet'
-        if (isSendingFrames) {
-            console.log(`Frame: ${frame.width}x${frame.height} (${frame.pixelFormat})`)
-            console.log("isSendingFrames turns true now, the toggle button is clicked.")
+        'worklet';
+
+        // Wrap the frame processing logic inside runAtTargetFps
+        runAtTargetFps(1, () => {
+            'worklet';
+            if (isSendingFrames) {
+                console.log(`Frame: ${frame.width}x${frame.height} (${frame.pixelFormat})`);
+                console.log("isSendingFrames turns true now, the toggle button is clicked.");
+
                 try {
                     // Call the handleWebSocket function from the main thread
-                    console.log("starting handleWebSocket() in the main thread.")
-                    // console.log("frame:",frame);
-                    // 1. Resize 4k Frame to 192x192x3 using vision-camera-resize-plugin
-                        const resizedFrame = resize(frame, {
-                            scale: {
-                                width: 192,
-                                height: 192,
-                            },
-                            pixelFormat: 'rgb',
-                            dataType: 'uint8',
-                        });
+                    console.log("starting handleWebSocket() in the main thread.");
 
-                        // console.log("resizedFrame:",resizedFrame);
-                        const pixelsArray = Object.values(resizedFrame);
-                        // console.log(pixelsArray);
+                    // Resize the frame
+                    const resizedFrame = resize(frame, {
+                        scale: {
+                            width: 192,
+                            height: 192,
+                        },
+                        pixelFormat: 'rgb',
+                        dataType: 'uint8',
+                    });
 
-                        // 2. Run model with given input buffer synchronously
-                        // const outputs = model.runSync([resized]); 
-
-                        // 3. Interpret outputs accordingly
-                        // const detection_boxes = outputs[0];
-                        // const detection_classes = outputs[1];
-                        // const detection_scores = outputs[2];
-                        // const num_detections = outputs[3];
-                        // console.log(`Detected ${num_detections[0]} objects!`);
-
-                        // for (let i = 0; i < detection_boxes.length; i += 4) {
-                        //   const confidence = detection_scores[i / 4];
-                        //   if (confidence > 0.7) {
-                        //     // 4. Draw a red box around the detected object!
-                        //     const left = detection_boxes[i];
-                        //     const top = detection_boxes[i + 1];
-                        //     const right = detection_boxes[i + 2];
-                        //     const bottom = detection_boxes[i + 3];
-                        //     const rect = SkRect.Make(left, top, right, bottom);
-                        //     canvas.drawRect(rect, SkColors.Red);
-                        //   }
-                        // }
-
-                    // Initialize an array to hold all pixel values
-                    // const allPixels = [];
-
-                    // Increment frame counter
-                    // frameCounter++;
-                    // if (frame.pixelFormat === 'rgb') {
-                        // const buffer = resizedFrame.toArrayBuffer();
-                        // const data = new Uint8Array(buffer);
-                        
-                        
-                        // *** Method 3 :
-                        // const width = resizedFrame.width;
-                        // const height = resizedFrame.height;
-                        
-                        // Process the entire frame
-                        // for (let y = 0; y < height; y++) {
-                        //   for (let x = 0; x < width; x++) {
-                        //     // Calculate the index of the current pixel in the data array
-                        //     const index = (y * width + x) * 3; // 3 channels (RGB)
-                        //     const r = data[index];
-                        //     const g = data[index + 1];
-                        //     const b = data[index + 2];
-                            
-                        //     // Do something with the RGB values of the pixel
-                        //     console.log(`Pixel at (${x},${y}): RGB(${r},${g},${b})`);
-                        //     // Append RGB values to the allPixels array
-                        //     allPixels.push(r, g, b);
-                        //     console.log("allPixels:",allPixels);
-                        //   }
-                        // }
-
-                        // console.log("Frame", frameCounter, "processed");
+                    const pixelsArray = Object.values(resizedFrame);
                     
-                    
-                    // *** Method 2 :
-                    // // Assuming 3 channels (RGB) and 8 bits per channel
-                    // const width = frame.width;
-                    // const height = frame.height;
-                    // const pixelCount = width * height;
-                    
-                    // // Extract the entire frame pixel data
-                    // const framePixels = new Uint8Array(pixelCount * 3); // 3 channels (RGB)
-                    // framePixels.set(data);
-                    
-                    // // Now framePixels contains the pixel data of the entire frame
-                    // console.log("Frame pixels:", framePixels);
-                    
-                    // *** Method 1 :
-                    // console.log(`Pixel at 0,0: RGB(${data[0]}, ${data[1]}, ${data[2]})`)
-                    // const frameData = [data[0],data[1],data[2]];
-                    // console.log("frameData:",frameData);
-                    // handleWebSocket(frame);
-                    // handleWebSocket(frameData);
                     handleWebSocket(pixelsArray);
-                    // }
-                    // runOnJS(handleWS)(frame, jsonData);
-                    }catch (error) {
-                        console.error(
-                            'Error while processing frame or sending data to WebSocket:',
-                            error,
-                        );
-                    }
-                    // console.log("Total frames processed:", frameCounter);
+                } catch (error) {
+                    console.error(
+                        'Error while processing frame or sending data to WebSocket:',
+                        error,
+                    );
                 }
             }
-            , [isSendingFrames])
-            
-            
+        });
+    }, [isSendingFrames]);
+       
     // useEffect(() => {
     //     return () => {
     //         // Clean up WebSocket connection when unmounting
@@ -879,6 +812,7 @@ export default function CameraScreen() {
                         // video={hasCameraPermission}
                         // photo={hasCameraPermission}
                         // audio={hasMicrophonePermission}
+                        // frameProcessor={throttledFrameProcessor}
                         frameProcessor={frameProcessor}
                         // qualityBalance="speed"
                     />

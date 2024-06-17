@@ -7,8 +7,8 @@ const getWebSocketURL = () => {
     // Define WebSocket URLs for different environments or platforms
     // For example, you might have different URLs for development, staging, and production environments
     // const developmentUrl = 'http://localhost:3001'; // Change to your server URL
-    // const developmentUrl = 'http://192.168.0.168:3001'; // Wenny's Wifi
-    const developmentUrl = 'http://172.20.10.1'; // Starbuck's Wifi
+    const developmentUrl = 'http://192.168.0.168:3001'; // Wenny's Wifi
+    // const developmentUrl = 'http://172.20.10.1'; // Wenny's iPhone 15 Wifi
     // const developmentUrl = 'http://192.168.19.163:3001'; // Somewhere Meeting Room wifi
     const productionUrl = 'https://rarbit.tech';
 

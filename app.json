@@ -105,8 +105,7 @@
         }
       ],
       "expo-asset",
-      "expo-font",
-      "expo-build-properties"
+      "expo-font"
     ],
     "extra": {
       "router": {

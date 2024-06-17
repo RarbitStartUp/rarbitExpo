@@ -9,8 +9,11 @@ import YoutubePlayer from "react-native-youtube-iframe";
 export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
 
     console.log("videoId in DisplayCheckedList:", videoId);
-    console.log("fullCheckxelistString in DisplayCheckedList:",fullChecklistString);
+    console.log("fullChecklistString in DisplayCheckedList:",fullChecklistString);
     console.log("jsonData in DisplayCheckedList:",jsonData);
+
+    const fullChecklist = JSON.parse(fullChecklistString);
+    console.log("parsed fullChecklist in DisplayedCheckedList.js :", fullChecklist);
 
     const [currentStepIndex, setCurrentStepIndex] = useState(0); 
     const [aiStepIndex, setAiStepIndex] = useState(0); 
@@ -56,18 +59,18 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
     }, [checklistData]);  
 
     useEffect(() => {
-        if (fullChecklistString?.stepIndex) {
-            setAiStepIndex(fullChecklistString.stepIndex);
+        if (fullChecklist?.stepIndex) {
+            setAiStepIndex(fullChecklist.stepIndex);
         }
-    }, [fullChecklistString]);
+    }, [fullChecklist]);
 
     useEffect(() => {
-        if (allActionsAreTrue(fullChecklistString)) {
+        if (allActionsAreTrue(fullChecklist)) {
             if (currentStepIndex < aiStepIndex) {
                 setCurrentStepIndex(prevIndex => prevIndex + 1);
             }
         }
-    }, [fullChecklistString, currentStepIndex, aiStepIndex]);
+    }, [fullChecklist, currentStepIndex, aiStepIndex]);
     
     const slideAnim = useRef(new Animated.Value(0)).current;
     
@@ -228,12 +231,12 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
     //     );
     // };
     
-    function allActionsAreTrue(fullChecklistString) {
-        if (!fullChecklistString || !fullChecklistString.actions) {
+    function allActionsAreTrue(fullChecklist) {
+        if (!fullChecklist || !fullChecklist.actions) {
             return false;
         }
     
-        const { actions } = fullChecklistString;
+        const { actions } = fullChecklist;
     
         // Check if all actions are true
         for (const item in actions) {
@@ -262,7 +265,7 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
 
     return (
         <View className="space-y-3">
-            { fullChecklistString && allActionsAreTrue(fullChecklistString) && (
+            { fullChecklist && allActionsAreTrue(fullChecklist) && (
                         <View className="flex flex-col px-5">
                         <View className="flex flex-row items-center w-full justify-between">
                         <Text className="text-white text-xl font-bold">You have finished all steps!</Text>
@@ -302,8 +305,8 @@ export function DisplayCheckedList({ fullChecklistString, jsonData, videoId }) {
                                 {/* <Text>Timestamp : {step.timestamp}</Text> */}
                                 <View className="flex flex-row w-full space-x-3 items-center" style={{height:58}}>
                                 {/* <MaterialCommunityIcons name="human-handsdown" size={20} color="#939393" /> */}
-                                        {renderChecklistActionsItems(step.actions,  fullChecklistString?.actions || {})}
-                                        {/* {renderChecklistActionsItems(step.actions, fullChecklistString.actions)} */}
+                                        {renderChecklistActionsItems(step.actions,  fullChecklist?.actions || {})}
+                                        {/* {renderChecklistActionsItems(step.actions, fullChecklist.actions)} */}
                                 </View>
                                 </View>
                             </View>

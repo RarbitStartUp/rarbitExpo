@@ -1,12 +1,12 @@
 import React, { useState,useCallback,useEffect } from 'react';
-import { Animated, View, Text, TextInput, Easing } from 'react-native';
+import { Animated, KeyboardAvoidingView, Platform, View, Text, TextInput, Easing } from 'react-native';
 import { AnimateTextInput } from "../components/AnimateTextInput";
 import { useRouter } from "expo-router";
 import axios from 'axios';
 import { NeuButton } from './neumorphsimButton';
-import { useSound } from "../util/SoundProvider"
-
+import { useSound } from "../util/SoundProvider";
 import * as Haptics from 'expo-haptics';
+import { useWebSocket } from '../util/useWebSocket';
 
 // import Reanimated, {
 //   useAnimatedStyle,
@@ -20,7 +20,7 @@ import * as Haptics from 'expo-haptics';
 axios.defaults.debug = true;
 
 export function UploadVideo() {
-    //   const [progress, setProgress] = useState(0);
+    const [progress, setProgress] = useState(0);
     const [message, setMessage] = useState('');
     const [inputLink, setInputLink] = useState('');
     const [pending, setPending] = useState(false);
@@ -28,26 +28,6 @@ export function UploadVideo() {
 
     const { playSound, soundEnabled } = useSound();
     const buttonClickSound = require('../assets/shooting-sound-fx-159024.mp3');
-    // const playSound = useCallback(async (soundType) => {
-    //     const { sound } = await Audio.Sound.createAsync(soundType);
-    //     setSound(sound);
-    //     await sound.playAsync();
-    //   }, []);
-
-    // const [isFavorite, setIsFavourite] = React.useState(false);
-    // const [quantity, setQuantity] = React.useState(1);
-    // const [cartCount, setCartCount] = React.useState(0);
-    // const [isLoading, setIsLoading] = React.useState(false);
-    // const [currentSound, setSound] = React.useState();
-    // const heartScale = useSharedValue(1);
-    // const buttonScale = useSharedValue(1);
-    // const [isEnabled, setIsEnabled] = React.useState(true);
-
-    // function haptics(){
-    //     // Haptics.notificationAsync(
-    //     //     Haptics.NotificationFeedbackType.Success);
-    //     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
-    // }
 
     function haptics(type) {
         Haptics.impactAsync(type);
@@ -75,23 +55,55 @@ export function UploadVideo() {
         return match ? match[1] : null;
     }    
 
-    async function upload(inputLink) {
+    const {socket, isWebSocketOpen} = useWebSocket();
+    console.log("isWebSocketOpen in UploadVideo:", isWebSocketOpen);
 
-        let apiUrl;
+    useEffect(() => {
+        if (isWebSocketOpen) {
+            console.log('WebSocket connection opened successfully in UploadVideo');
+        }
+    }, [isWebSocketOpen]);
+
+    useEffect(() => {
+        if (!socket) return;
+        
+            // Listen for progress updates from the server
+            socket.on('progressUpdate', (data) => {
+            try {
+                console.log(
+                    'progressUpdate :',
+                    data.progress ,
+                );
+                setProgress(data.progress);
+            } catch (error) {
+                console.error('Error processing WebSocket message:', error);
+            }
+        });
+
+        socket.on('error', error => {
+            console.error('WebSocket error in UploadVideo:', error);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('WebSocket connection closed in UploadVideo');
+        });
+
+        return () => {
+            socket.close();
+        };
+    }, [socket]);
+
+    async function upload(inputLink) {
 
         const url = inputLink;
         console.log('url in UploadVideo:', url);
         const videoId = extractVideoId(url);
         console.log('Video ID in UploadVideo:', videoId);
         
-        if (process.env.NODE_ENV === 'development') {
-            // Running in development mode
-            apiUrl = 'http://192.168.0.168:3001/api/uploadVideo'; // Emulator to localhost:3001
-            // apiUrl = 'http://localhost:3001/api/uploadVideo'; // Emulator to localhost:3001
-        } else {
-            // Running in production mode
-            apiUrl = 'https://rarbit.tech/api/uploadVideo'; // Expo app to rarbit.tech
-        }
+        const apiUrl = process.env.NODE_ENV === 'development'
+        ? 'http://192.168.0.168:3001/api/uploadVideo'
+        : 'https://rarbit.tech/api/uploadVideo';
+    
         try {
             console.log('inputLink :', inputLink);
             console.log("apiUrl:", apiUrl);
@@ -160,8 +172,14 @@ export function UploadVideo() {
     };
 
     return (
-    <View className="flex flex-col w-4/5 justify-center items-center">
-            {/* <Text>{message}</Text> */}
+    <KeyboardAvoidingView 
+        className="flex flex-col w-4/5 justify-center items-center"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0} // Adjust this value as needed
+    >
+            <Text className="text-gray-400 pb-2">{message}</Text>
+            {/* { progress && <Text>Upload Progress: {progress}%</Text> } */}
+            <Text>Upload Progress: {progress}%</Text>
             {/* <ProgressBar progress={progress} color={'blue'} /> */}
             <AnimateTextInput
                 // height={50}
@@ -185,7 +203,8 @@ export function UploadVideo() {
             <NeuButton height={50} width='100%' onPress={handleUpload} disabled={pending}>
                 <Text className="text-gray-400 text-lg font-semi-bold">{pending ? 'Uploading...' : 'Upload'}</Text>
             </NeuButton>
-        </View>
+        {/* </View> */}
+    </KeyboardAvoidingView>
     );
 }
 
